@@ -13,7 +13,7 @@ CHAT_ID = os.environ["CHAT_ID"]
 STOCKS = {
     "Swiggy": "SWIGGY.NS",
     "Zomato": "ETERNAL.BO",
-    "Tata Motors": "TATAMOTORS.BO",
+    "Tata Motors": "TMCV.BO",
     "SBI Bank": "SBIN.NS",
     "Hero MotoCorp": "HEROMOTOCO.NS",
     "Nykaa": "NYKAA.NS",
