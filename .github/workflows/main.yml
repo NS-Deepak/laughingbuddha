@@ -19,6 +19,12 @@ on:
     # 03:30 PM IST = 10:00 UTC
     - cron: '00 10 * * 1-5'
 
+    # 03:30 PM IST = 10:00 UTC
+    - cron: '00 10 * * 1-5'
+
+    # 06:10 PM IST = 12:40 UTC
+    - cron: '40 12 * * *'
+    
   # This allows you to run it manually anytime by clicking a button
   workflow_dispatch:
 
