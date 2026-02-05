@@ -1,0 +1,45 @@
+name: Market Bot
+
+on:
+  schedule:
+    # CRON SYNTAX: 'Minute Hour * * Day' (in UTC Time)
+    
+    # 10:00 AM IST = 04:30 UTC
+    - cron: '30 4 * * 1-5'
+    
+    # 12:00 PM IST = 06:30 UTC
+    - cron: '30 6 * * 1-5'
+    
+    # 02:00 PM IST = 08:30 UTC
+    - cron: '30 8 * * 1-5'
+    
+    # 03:22 PM IST = 09:52 UTC
+    - cron: '52 9 * * 1-5'
+    
+    # 03:30 PM IST = 10:00 UTC
+    - cron: '00 10 * * 1-5'
+
+  # This allows you to run it manually anytime by clicking a button
+  workflow_dispatch:
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Libraries
+        run: pip install yfinance requests pytz
+
+      - name: Run Bot
+        env:
+          # These grab the passwords from your Settings
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: python market_bot.py
