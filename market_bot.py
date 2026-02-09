@@ -20,8 +20,8 @@ CHAT_ID = os.environ.get("CHAT_ID")
 STOCKS = {
     # --- INDIAN STOCKS ---
     "Swiggy": ["SWIGGY.NS", "SWIGGY.BO"],
-    "Zomato (Eternal)": ["ZOMATO.NS", "ZOMATO.BO"], # Note: Ticker is likely still ZOMATO on Yahoo
-    "Tata Motors": ["TATAMOTORS.BO", "TATAMOTORS.NS"],
+    "Zomato (Eternal)": ["ETERNAL.NS", "ZOMATO.BO"], # Note: Ticker is likely still ZOMATO on Yahoo
+    "Tata Motors": ["TMPV.BO", "TATAMOTORS.NS"],
     "SBI Bank": ["SBIN.NS", "SBIN.BO"],
     "Hero MotoCorp": ["HEROMOTOCO.NS", "HEROMOTOCO.BO"],
     "Nykaa": ["NYKAA.NS", "NYKAA.BO"],
