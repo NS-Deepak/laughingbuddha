@@ -10,15 +10,27 @@ BOT_TOKEN = os.environ["BOT_TOKEN"]
 CHAT_ID = os.environ["CHAT_ID"]
 
 # YOUR STOCK LIST
+# Format: "Name": ["Option 1", "Option 2"]
 STOCKS = {
-    "Swiggy": "SWIGGY.NS",
-    "Zomato": "ETERNAL.BO",
-    "Tata Motors": "TMCV.BO",
-    "SBI Bank": "SBIN.NS",
-    "Hero MotoCorp": "HEROMOTOCO.NS",
-    "Nykaa": "NYKAA.NS",
-    "TCS": "TCS.NS",
-    "Groww ETF": "GROWW.NS"
+    # --- INDIAN STOCKS ---
+    "Swiggy": ["SWIGGY.NS", "SWIGGY.BO"],
+    "Zomato (Eternal)": ["ETERNAL.NS", "ETERNAL.BO"],
+    "Tata Motors": ["TATAMOTORS.BO", "TATAMOTORS.NS"],
+    "SBI Bank": ["SBIN.NS", "SBIN.BO"],
+    "Hero MotoCorp": ["HEROMOTOCO.NS", "HEROMOTOCO.BO"],
+    "Nykaa": ["NYKAA.NS", "NYKAA.BO"],
+    "TCS": ["TCS.NS", "TCS.BO"],
+    "Groww ETF": ["GROWW.NS", "GROWW.BO"],
+
+    # --- COMMODITIES (ETFs in INR) ---
+    "Gold (BeES)": ["GOLDBEES.NS", "GOLDBEES.BO"],     # Tracks Gold price in INR
+    "Silver (BeES)": ["SILVERBEES.NS", "SILVERBEES.BO"], # Tracks Silver price in INR
+
+    # --- CRYPTO (Live 24/7 in INR) ---
+    "Bitcoin": ["BTC-INR"],
+    "Ethereum": ["ETH-INR"],
+    "Solana": ["SOL-INR"],
+    "Polygon (Matic)": ["MATIC-INR"]
 }
 
 def send_update():
