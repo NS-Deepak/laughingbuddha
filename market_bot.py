@@ -6,7 +6,7 @@ from datetime import datetime
 import urllib.parse
 
 # --- CONFIGURATION ---
-# Getting secrets from GitHub
+# Getting secret from GitHub
 # Note: Ensure you have these secrets set in your GitHub Repo settings!
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 CHAT_ID = os.environ.get("CHAT_ID")
