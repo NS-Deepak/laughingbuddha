@@ -94,7 +94,7 @@ jobs:
 
 1. Go to your GitHub repository.
 2. Click on the **Actions** tab.
-3. Select **Main.yml file** from the left sidebar.
+3. Select **Market Bot** from the left sidebar.
 4. Click the **Run workflow** dropdown and press the green button.
 
 ### How to Setup Secrets:
