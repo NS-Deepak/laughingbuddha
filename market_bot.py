@@ -28,10 +28,17 @@ STOCKS = {
     "TCS": ["TCS.NS", "TCS.BO"],
     "Groww ETF": ["GROWW.NS", "GROWW.BO"],
 
+   "COMMODITIES"
+    
+    
     # --- COMMODITIES (ETFs in INR) ---
     "Gold (BeES)": ["GOLDBEES.NS", "GOLDBEES.BO"],
     "Silver (BeES)": ["SILVERBEES.NS", "SILVERBEES.BO"],
 
+
+    "CRYPTO"
+
+    
     # --- CRYPTO (Live 24/7 in INR) ---
     "Bitcoin": ["BTC-INR"],
     "Ethereum": ["ETH-INR"],
