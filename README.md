@@ -103,7 +103,7 @@ To keep your keys safe, go to **Settings > Secrets and variables > Actions** and
 
 ---
 
-*Built by [Deepak G*](https://www.google.com/search?q=https://github.com/NS-Deepak)
+*Built by [Deepak G*](https://me-deepakg.vercel.app/)
 
 [Manually Trigger GitHub Actions Workflows](https://www.youtube.com/watch?v=nQRgTUwGBBA)
 
