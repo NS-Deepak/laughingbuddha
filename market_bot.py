@@ -28,7 +28,7 @@ MARKET_DATA = {
         "Bitcoin": ["BTC-INR"],
         "Ethereum": ["ETH-INR"],
         "Solana": ["SOL-INR"],
-        "Polygon (Matic)": ["POL-INR"], # Updated from MATIC to POL (rebranded)
+        "Polygon (Matic)": ["MATIC-INR"], # Updated from MATIC to POL (rebranded)
     }
 }
 
