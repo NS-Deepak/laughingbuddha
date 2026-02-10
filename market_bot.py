@@ -12,8 +12,8 @@ CHAT_ID = os.environ.get("CHAT_ID")
 MARKET_DATA = {
     "🇮🇳 INDIAN STOCKS": {
         "Swiggy": ["SWIGGY.NS", "SWIGGY.BO"],
-        "Zomato": ["ZOMATO.NS", "ZOMATO.BO"],
-        "Tata Motors": ["TATAMOTORS.NS", "TATAMOTORS.BO"],
+        "Zomato": ["ZOMATO.NS", "ETERNAL.BO"],
+        "Tata Motors": ["TATAMOTORS.NS", "TMCV.BO"],
         "SBI Bank": ["SBIN.NS", "SBIN.BO"],
         "Hero MotoCorp": ["HEROMOTOCO.NS", "HEROMOTOCO.BO"],
         "Nykaa": ["NYKAA.NS", "NYKAA.BO"],
