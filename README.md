@@ -16,7 +16,7 @@
 * **API Keys:** You will need access to:
 * **Financial Data:** Yahoo Finance / Alpha Vantage.
 * **Telegram:** Bot Token from [@BotFather](https://t.me/botfather).
-
+* **Telegram:** Chat ID from [@userinfobot](https://t.me/userinfobot).
 
 ### 2. Installation
 
