@@ -4,27 +4,15 @@ on:
   schedule:
     # --- WEEKDAYS (Monday to Friday) ---
     # 9:15 AM IST to 3:15 PM IST (Hourly)
-    # 9:15 AM IST  = 03:45 UTC
-    # 10:15 AM IST = 04:45 UTC
-    # ... up to ...
-    # 3:15 PM IST  = 09:45 UTC
+    # 45 mins + (3,4,5,6,7,8,9) UTC hours = 9:15, 10:15... 3:15 IST
     - cron: '45 3,4,5,6,7,8,9 * * 1-5'
     
     # 4:15 PM IST = 10:45 UTC
     - cron: '45 10 * * 1-5'
 
     # --- WEEKENDS (Saturday & Sunday) ---
-    # 9:00 AM IST = 03:30 UTC
-    - cron: '30 3 * * 6,0'
-    
-    # 12:00 PM IST = 06:30 UTC
-    - cron: '30 6 * * 6,0'
-    
-    # 5:00 PM IST = 11:30 UTC
-    - cron: '30 11 * * 6,0'
-    
-    # 9:00 PM IST = 15:30 UTC
-    - cron: '30 15 * * 6,0'
+    # 9 AM, 12 PM, 5 PM, 9 PM IST
+    - cron: '30 3,6,11,15 * * 6,0'
 
   workflow_dispatch:
 
@@ -44,9 +32,8 @@ jobs:
         run: pip install yfinance requests pytz
 
       - name: Run Bot
-        run: python your_script_name.py
+        # FIXED: Merged the environment variables and the run command into one step
         env:
-          # These grab the passwords from your Settings
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
         run: python market_bot.py
