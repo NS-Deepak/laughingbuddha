@@ -2,17 +2,31 @@ name: Market Bot
 
 on:
   schedule:
-    # --- WEEKDAYS (Monday to Friday) ---
-    # 9:15 AM IST to 3:15 PM IST (Hourly)
-    # 45 mins + (3,4,5,6,7,8,9) UTC hours = 9:15, 10:15... 3:15 IST
-    - cron: '45 3,4,5,6,7,8,9 * * 1-5'
-    
-    # 4:15 PM IST = 10:45 UTC
-    - cron: '45 10 * * 1-5'
+    # --- WEEKDAYS: ON THE HOUR (9:00 AM to 4:00 PM IST) ---
+    - cron: '30 3 * * 1-5'   # 09:00 AM IST
+    - cron: '30 4 * * 1-5'   # 10:00 AM IST
+    - cron: '30 5 * * 1-5'   # 11:00 AM IST
+    - cron: '30 6 * * 1-5'   # 12:00 PM IST
+    - cron: '30 7 * * 1-5'   # 01:00 PM IST
+    - cron: '30 8 * * 1-5'   # 02:00 PM IST
+    - cron: '30 9 * * 1-5'   # 03:00 PM IST
+    - cron: '30 10 * * 1-5'  # 04:00 PM IST
+
+    # --- WEEKDAYS: 15 MINS PAST (9:15 AM to 4:15 PM IST) ---
+    - cron: '45 3 * * 1-5'   # 09:15 AM IST
+    - cron: '45 4 * * 1-5'   # 10:15 AM IST
+    - cron: '45 5 * * 1-5'   # 11:15 AM IST
+    - cron: '45 6 * * 1-5'   # 12:15 PM IST
+    - cron: '45 7 * * 1-5'   # 01:15 PM IST
+    - cron: '45 8 * * 1-5'   # 02:15 PM IST
+    - cron: '45 9 * * 1-5'   # 03:15 PM IST
+    - cron: '45 10 * * 1-5'  # 04:15 PM IST
 
     # --- WEEKENDS (Saturday & Sunday) ---
-    # 9 AM, 12 PM, 5 PM, 9 PM IST
-    - cron: '30 3,6,11,15 * * 6,0'
+    - cron: '30 3 * * 6,0'   # 09:00 AM IST
+    - cron: '30 6 * * 6,0'   # 12:00 PM IST
+    - cron: '30 11 * * 6,0'  # 05:00 PM IST
+    - cron: '30 15 * * 6,0'  # 09:00 PM IST
 
   workflow_dispatch:
 
@@ -32,7 +46,6 @@ jobs:
         run: pip install yfinance requests pytz
 
       - name: Run Bot
-        # FIXED: Merged the environment variables and the run command into one step
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
