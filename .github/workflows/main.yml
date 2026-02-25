@@ -2,30 +2,30 @@ name: Market Bot
 
 on:
   schedule:
-    # CRON SYNTAX: 'Minute Hour * * Day' (in UTC Time)
+    # --- WEEKDAYS (Monday to Friday) ---
+    # 9:15 AM IST to 3:15 PM IST (Hourly)
+    # 9:15 AM IST  = 03:45 UTC
+    # 10:15 AM IST = 04:45 UTC
+    # ... up to ...
+    # 3:15 PM IST  = 09:45 UTC
+    - cron: '45 3,4,5,6,7,8,9 * * 1-5'
     
-    # 10:00 AM IST = 04:30 UTC
-    - cron: '30 4 * * 1-5'
+    # 4:15 PM IST = 10:45 UTC
+    - cron: '45 10 * * 1-5'
+
+    # --- WEEKENDS (Saturday & Sunday) ---
+    # 9:00 AM IST = 03:30 UTC
+    - cron: '30 3 * * 6,0'
     
     # 12:00 PM IST = 06:30 UTC
-    - cron: '30 6 * * 1-5'
+    - cron: '30 6 * * 6,0'
     
-    # 02:00 PM IST = 08:30 UTC
-    - cron: '30 8 * * 1-5'
+    # 5:00 PM IST = 11:30 UTC
+    - cron: '30 11 * * 6,0'
     
-    # 03:22 PM IST = 09:52 UTC
-    - cron: '52 9 * * 1-5'
-    
-    # 03:30 PM IST = 10:00 UTC
-    - cron: '00 10 * * 1-5'
+    # 9:00 PM IST = 15:30 UTC
+    - cron: '30 15 * * 6,0'
 
-    # 03:30 PM IST = 10:00 UTC
-    - cron: '00 10 * * 1-5'
-
-    # 06:10 PM IST = 12:40 UTC
-    - cron: '40 12 * * *'
-    
-  # This allows you to run it manually anytime by clicking a button
   workflow_dispatch:
 
 jobs:
@@ -44,6 +44,7 @@ jobs:
         run: pip install yfinance requests pytz
 
       - name: Run Bot
+        run: python your_script_name.py
         env:
           # These grab the passwords from your Settings
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
