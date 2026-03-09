@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 240 10% 3.9%;
+    /* #0B0E11 corresponds to approx this HSL */
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 48 96% 60%;
+    /* Binance Yellow #FCD535 */
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 48 96% 60%;
+    --radius: 0.5rem;
+
+    /* Binance Specific Extras */
+    --binance-bg: #0B0E11;
+    --binance-surface: #1E2329;
+    --binance-border: #2B3139;
+    --binance-up: #0ECB81;
+    --binance-down: #F6465D;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* cmdk omnibar heading */
+[cmdk-group-heading] {
+  padding: 8px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #848E9C;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}

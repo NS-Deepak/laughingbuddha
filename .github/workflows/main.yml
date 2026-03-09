@@ -1,10 +1,11 @@
-name: Market Bot
+name: 🚀 Market Bot
 
 on:
   schedule:
-    # CRON SYNTAX: 'Minute Hour * * Day' (in UTC Time)
+    # CRON SYNTAX: 'Minute Hour * * Day' (UTC Time)
+    # Market Hours (IST -> UTC conversion: IST = UTC + 5:30)
     
-    # 10:00 AM IST = 04:30 UTC
+    # 10:00 AM IST = 04:30 UTC (Market Open)
     - cron: '30 4 * * 1-5'
     
     # 12:00 PM IST = 06:30 UTC
@@ -16,36 +17,62 @@ on:
     # 03:22 PM IST = 09:52 UTC
     - cron: '52 9 * * 1-5'
     
-    # 03:30 PM IST = 10:00 UTC
+    # 03:30 PM IST = 10:00 UTC (Market Close)
     - cron: '00 10 * * 1-5'
 
-    # 03:30 PM IST = 10:00 UTC
-    - cron: '00 10 * * 1-5'
-
-    # 06:10 PM IST = 12:40 UTC
+    # 06:10 PM IST = 12:40 UTC (Evening summary - runs daily)
     - cron: '40 12 * * *'
     
-  # This allows you to run it manually anytime by clicking a button
+  # Manual trigger with optional inputs
   workflow_dispatch:
+    inputs:
+      custom_message:
+        description: 'Optional custom message to include'
+        required: false
+        default: ''
+
+# Prevent concurrent runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   run-bot:
+    name: 📊 Fetch & Send Market Update
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.11'
+          cache: 'pip'
 
-      - name: Install Libraries
-        run: pip install yfinance requests pytz
+      - name: 📦 Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install yfinance requests pytz psycopg2-binary
 
-      - name: Run Bot
+      - name: 🤖 Run Scheduler
         env:
-          # These grab the passwords from your Settings
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: python market_bot.py
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python scripts/scheduler.py
+
+      - name: ✅ Success notification
+        if: success()
+        run: |
+          echo "## ✅ Market Update Sent Successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "- **Time:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: ❌ Failure notification
+        if: failure()
+        run: |
+          echo "## ❌ Market Bot Failed" >> $GITHUB_STEP_SUMMARY
+          echo "- **Time:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "- **Error:** Check logs above for details" >> $GITHUB_STEP_SUMMARY

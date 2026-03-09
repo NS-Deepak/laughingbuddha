@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Tier {
+  FREE
+  PRO
+}
+
+enum AssetType {
+  STOCK
+  CRYPTO
+  COMMODITY
+}
+
+enum TriggerType {
+  SCHEDULED
+  PRICE_LIMIT
+}
+
+model User {
+  id              String   @id // Clerk ID
+  email           String   @unique
+  telegramChatId  String?  @map("telegram_chat_id")
+  whatsappPhone   String?  @map("whatsapp_phone")
+  timezone        String   @default("Asia/Kolkata") @map("timezone") // IANA timezone
+  tier            Tier     @default(FREE)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  alerts          Alert[]
+  assets          Asset[]
+  schedules       Schedule[] // NEW: For scheduled digest alerts
+
+  @@map("users")
+}
+
+model Alert {
+  id              String      @id @default(uuid())
+  userId          String      @map("user_id")
+  assetSymbol     String      @map("asset_symbol") // e.g., "RELIANCE.NS"
+  assetName       String?     @map("asset_name")
+  assetType       AssetType   @map("asset_type")
+  triggerType     TriggerType @map("trigger_type")
+  triggerValue    String      @map("trigger_value") // "09:00" or "300.00"
+  isActive        Boolean     @default(true) @map("is_active")
+  lastSentAt      DateTime?   @map("last_sent_at")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("alerts")
+}
+
+model Asset {
+  id              String      @id @default(uuid())
+  userId          String      @map("user_id")
+  symbol          String      // e.g., "RELIANCE.NS", "BTC-USD"
+  name            String      // e.g., "Reliance Industries", "Bitcoin"
+  assetType       AssetType   @map("asset_type")
+  exchange        String      // "NSE", "BSE", "BINANCE", "COINBASE"
+  addedAt         DateTime    @default(now()) @map("added_at")
+
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schedules       ScheduleAsset[] // NEW: Link to schedules
+
+  @@index([userId])
+  @@unique([userId, symbol])
+  @@map("assets")
+}
+
+// NEW MODEL: Schedule - For time-based digest alerts
+model Schedule {
+  id              String      @id @default(uuid())
+  userId          String      @map("user_id")
+  
+  name            String      @default("Daily Update") // e.g., "Market Open", "Evening Digest"
+  targetTime      String      @map("target_time") // "09:00" (24-hour format in user's timezone)
+  daysOfWeek      Int[]       @map("days_of_week") // [1,2,3,4,5] for Mon-Fri (1=Monday, 7=Sunday)
+  
+  isActive        Boolean     @default(true) @map("is_active")
+  lastSentAt      DateTime?   @map("last_sent_at")
+  lastSentDate    String?     @map("last_sent_date") // "2026-03-05" - prevents duplicate sends
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assets          ScheduleAsset[] // Assets included in this schedule
+
+  // ✅ Critical indexes for scheduler performance (P2 Fix)
+  @@index([isActive, targetTime])
+  @@index([userId])
+  @@index([lastSentDate])
+  @@map("schedules")
+}
+
+// NEW MODEL: ScheduleAsset - Junction table for many-to-many
+model ScheduleAsset {
+  id          String    @id @default(uuid())
+  scheduleId  String    @map("schedule_id")
+  assetId     String    @map("asset_id")
+  addedAt     DateTime  @default(now()) @map("added_at")
+
+  schedule    Schedule  @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  asset       Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, assetId])
+  @@index([scheduleId])
+  @@index([assetId])
+  @@map("schedule_assets")
+}
