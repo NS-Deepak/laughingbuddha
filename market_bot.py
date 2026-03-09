@@ -5,51 +5,78 @@ import pytz
 from datetime import datetime
 
 # --- CONFIGURATION ---
-# FIXED: We use the *NAME* of the variable. GitHub fills in the value automatically.
-BOT_TOKEN = os.environ["BOT_TOKEN"]
-CHAT_ID = os.environ["CHAT_ID"]
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+CHAT_ID = os.environ.get("CHAT_ID")
 
-# YOUR STOCK LIST
-STOCKS = {
-    "Swiggy": "SWIGGY.NS",
-    "Zomato": "ETERNAL.BO",
-    "Tata Motors": "TATAMOTORS.BO",
-    "SBI Bank": "SBIN.NS",
-    "Hero MotoCorp": "HEROMOTOCO.NS",
-    "Nykaa": "NYKAA.NS",
-    "TCS": "TCS.NS",
-    "Groww ETF": "GROWW.NS"
+# Restructured STOCKS dictionary for better grouping
+MARKET_DATA = {
+    "🇮🇳 INDIAN STOCKS": {
+        "Swiggy": ["SWIGGY.NS", "SWIGGY.BO"],
+        "Zomato": ["ZOMATO.NS", "ETERNAL.BO"],
+        "Tata Motors": ["TATAMOTORS.NS", "TMCV.BO"],
+        "SBI Bank": ["SBIN.NS", "SBIN.BO"],
+        "Hero MotoCorp": ["HEROMOTOCO.NS", "HEROMOTOCO.BO"],
+        "Nykaa": ["NYKAA.NS", "NYKAA.BO"],
+        "TCS": ["TCS.NS", "TCS.BO"],
+        "Groww ETF": ["GROWW.NS", "GROWW.BO"],
+    },
+    "📀 COMMODITIES": {
+        "Gold (BeES)": ["GOLDBEES.NS"],
+        "Silver (BeES)": ["SILVERBEES.NS"],
+    },
+    "🪙 CRYPTO": {
+        "Bitcoin": ["BTC-INR"],
+        "Ethereum": ["ETH-INR"],
+        "Solana": ["SOL-INR"],
+        "Polygon (Matic)": ["MATIC-INR"], # Updated from MATIC to POL (rebranded)
+    }
 }
+
+def get_price(tickers):
+    for ticker in tickers:
+        try:
+            stock = yf.Ticker(ticker)
+            price = stock.fast_info.last_price
+            if price:
+                return price
+        except Exception:
+            continue
+    return None
 
 def send_update():
     ist = pytz.timezone('Asia/Kolkata')
     time_now = datetime.now(ist).strftime('%I:%M %p')
     
-    # Fixed typo: Added opening parenthesis '(' before time_now
     msg = f"🚀 *Market Update* ({time_now})\n"
     msg += "----------------------------\n"
 
-    for name, ticker in STOCKS.items():
-        try:
-            stock = yf.Ticker(ticker)
-            price = stock.fast_info.last_price
-            
-            if price:
-                msg += f"• *{name}*: ₹{round(price, 2)}\n"
-            else:
-                msg += f"• *{name}*: N/A\n"
-        except Exception as e:
-            print(f"Skipping {name}: {e}")
-            msg += f"• *{name}*: ⚠️ Not Found\n"
+    for category, assets in MARKET_DATA.items():
+        # Add a spacing and a bold header for each category
+        msg += f"\n* {category} *\n"
+        
+        for name, ticker_list in assets.items():
+            try:
+                price = get_price(ticker_list)
+                if price:
+                    # Formatting currency for INR
+                    msg += f"• {name}: `₹{round(price, 2)}`\n"
+                else:
+                    msg += f"• {name}: ⚠️ Error\n"
+            except Exception as e:
+                msg += f"• {name}: ⚠️ Not Found\n"
 
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": CHAT_ID, 
-        "text": msg, 
-        "parse_mode": "Markdown"
-    }
-    requests.post(url, json=payload)
-    print("✅ Message sent successfully!")
+    # Sending to Telegram
+    if BOT_TOKEN and CHAT_ID:
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+        payload = {
+            "chat_id": CHAT_ID, 
+            "text": msg, 
+            "parse_mode": "Markdown"
+        }
+        requests.post(url, json=payload)
+        print("✅ Telegram message sent!")
+    else:
+        print("⚠️ Config Error: BOT_TOKEN or CHAT_ID missing.")
 
 if __name__ == "__main__":
     send_update()
