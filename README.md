@@ -1,6 +1,8 @@
  README for **laughingbuddha** project. I have added the GitHub Actions workflow configuration and instructions on how to trigger it manually or on a schedule.
 
 ---
+#Laughing Buddha is now crafting and adding new features, so new setup code will be added later
+
 
 #  laughingbuddha
 
