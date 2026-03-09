@@ -19,12 +19,20 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const user = await prisma.user.findUnique({
+  // Auto-create user if not exists (for first-time login)
+  let user = await prisma.user.findUnique({
     where: { id: userId }
   });
 
   if (!user) {
-    return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    // Create user with default values
+    user = await prisma.user.create({
+      data: {
+        id: userId,
+        email: `${userId}@clerk.user`, // Placeholder email
+        timezone: 'Asia/Kolkata',
+      }
+    });
   }
 
   return NextResponse.json(user);
@@ -46,13 +54,29 @@ export async function PATCH(request: NextRequest) {
 
   const { telegramChatId, timezone } = parsed.data;
 
-  const user = await prisma.user.update({
-    where: { id: userId },
-    data: {
-      ...(telegramChatId !== undefined && { telegramChatId }),
-      ...(timezone !== undefined && { timezone })
-    }
+  // Auto-create user if not exists (for PATCH)
+  let user = await prisma.user.findUnique({
+    where: { id: userId }
   });
+
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        id: userId,
+        email: `${userId}@clerk.user`,
+        timezone: timezone || 'Asia/Kolkata',
+        ...(telegramChatId && { telegramChatId }),
+      }
+    });
+  } else {
+    user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(telegramChatId !== undefined && { telegramChatId }),
+        ...(timezone !== undefined && { timezone })
+      }
+    });
+  }
 
   return NextResponse.json(user);
 }
