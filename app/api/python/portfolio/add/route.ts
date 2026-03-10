@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/db';
+import { createAssetSchema } from '@/lib/validations';
 
+// Self-review: Fixed - now using Zod validation from lib/validations.ts
+// Previously was trusting client input without validation
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
@@ -9,13 +12,20 @@ export async function POST(request: NextRequest) {
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
+
     const body = await request.json();
-    const { symbol, name, asset_type, exchange } = body;
     
-    if (!symbol || !name || !asset_type || !exchange) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    // Validate input with Zod
+    const parsed = createAssetSchema.safeParse(body);
+    
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
+    
+    const { symbol, name, assetType, exchange } = parsed.data;
     
     // Check if asset already exists
     const existing = await prisma.asset.findFirst({
@@ -35,7 +45,7 @@ export async function POST(request: NextRequest) {
         userId,
         symbol,
         name,
-        assetType: asset_type,
+        assetType,
         exchange,
       },
     });

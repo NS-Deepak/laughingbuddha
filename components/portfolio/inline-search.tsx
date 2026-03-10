@@ -39,15 +39,17 @@ export function InlineSearch({
 
     const addMutation = useMutation({
         mutationFn: async (asset: any) => {
+            // Normalize asset_type to assetType (camelCase) and map INDEX to STOCK
+            const normalizedType = asset.type === 'INDEX' ? 'STOCK' : asset.type;
+            
             const resp = await fetch('/api/python/portfolio/add', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    user_id: userId,
                     symbol: asset.symbol,
                     name: asset.name,
-                    asset_type: asset.type,
-                    exchange: asset.exchange
+                    assetType: normalizedType,
+                    exchange: asset.exchange || 'UNKNOWN'
                 }),
             });
 

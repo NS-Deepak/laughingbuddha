@@ -3,26 +3,17 @@ name: 🚀 Market Bot
 on:
   schedule:
     # CRON SYNTAX: 'Minute Hour * * Day' (UTC Time)
-    # Market Hours (IST -> UTC conversion: IST = UTC + 5:30)
+    # Run every minute for real-time data
+    - cron: '* * * * *'
     
-    # 10:00 AM IST = 04:30 UTC (Market Open)
-    - cron: '30 4 * * 1-5'
+    # Legacy - kept for reference
+    # Every 15 minutes
+    # - cron: '*/15 * * * *'
     
-    # 12:00 PM IST = 06:30 UTC
-    - cron: '30 6 * * 1-5'
-    
-    # 02:00 PM IST = 08:30 UTC
-    - cron: '30 8 * * 1-5'
-    
-    # 03:22 PM IST = 09:52 UTC
-    - cron: '52 9 * * 1-5'
-    
-    # 03:30 PM IST = 10:00 UTC (Market Close)
-    - cron: '00 10 * * 1-5'
+    # Market hours
+    # 10:00 AM IST = 04:30 UTC
+    # - cron: '30 4 * * 1-5'
 
-    # 06:10 PM IST = 12:40 UTC (Evening summary - runs daily)
-    - cron: '40 12 * * *'
-    
   # Manual trigger with optional inputs
   workflow_dispatch:
     inputs:

@@ -3,11 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-    BarChart3,
     Bell,
     LayoutDashboard,
     Zap,
-    Settings,
     User,
     LogOut
 } from 'lucide-react';
@@ -20,8 +18,7 @@ export function Sidebar() {
     const navItems = [
         { name: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
         { name: 'Terminal', icon: Zap, href: '/terminal/BTC-USD' },
-        { name: 'Alerts', icon: Bell, href: '/dashboard/alerts' },
-        { name: 'Analytics', icon: BarChart3, href: '#', disabled: true },
+        { name: 'Notifications', icon: Bell, href: '/dashboard/notifications' },
     ];
 
     return (
@@ -47,8 +44,7 @@ export function Sidebar() {
                             "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group",
                             pathname === item.href
                                 ? "bg-binance-brand text-black"
-                                : "text-binance-secondary hover:text-binance-text hover:bg-binance-bg",
-                            item.disabled && "opacity-40 cursor-not-allowed pointer-events-none"
+                                : "text-binance-secondary hover:text-binance-text hover:bg-binance-bg"
                         )}
                     >
                         <item.icon className={cn(
@@ -56,14 +52,13 @@ export function Sidebar() {
                             pathname === item.href ? "text-black" : "text-binance-secondary group-hover:text-binance-brand"
                         )} />
                         {item.name}
-                        {item.disabled && <span className="ml-auto text-[9px] font-bold border border-current px-1 rounded">SOON</span>}
                     </Link>
                 ))}
             </nav>
 
             <div className="p-4 mt-auto border-t border-binance-border space-y-2">
                 <Link
-                    href="#"
+                    href="/dashboard/profile"
                     className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-binance-secondary hover:text-binance-text transition-colors"
                 >
                     <User className="w-4 h-4" />

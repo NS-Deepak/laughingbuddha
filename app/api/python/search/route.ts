@@ -1,4 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+
+// Yahoo Finance API response types - Self-review: Added to fix 'any' type safety issue
+const yahooQuoteSchema = z.object({
+  symbol: z.string(),
+  shortname: z.string().optional(),
+  longname: z.string().optional(),
+  quoteType: z.string().optional(),
+  exchange: z.string().optional(),
+});
+
+const yahooSearchResponseSchema = z.object({
+  quotes: z.array(yahooQuoteSchema).optional(),
+});
+
+type YahooQuote = z.infer<typeof yahooQuoteSchema>;
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -23,20 +39,35 @@ export async function GET(request: NextRequest) {
       return NextResponse.json([]);
     }
     
-    const data = await response.json();
-    const quotes = data?.quotes || [];
+    const rawData = await response.json();
+    
+    // Validate response with Zod
+    const parsed = yahooSearchResponseSchema.safeParse(rawData);
+    if (!parsed.success) {
+      console.error('Yahoo API response validation failed:', parsed.error);
+      return NextResponse.json([]);
+    }
+    
+    const quotes = parsed.data.quotes || [];
     
     const results = quotes
-      .filter((item: any) => item.symbol)
-      .map((item: any) => {
+      .filter((item) => item.symbol)
+      .map((item: YahooQuote) => {
         let assetType = 'STOCK';
         const quoteType = item.quoteType || '';
         const symbol = item.symbol || '';
         
-        if (quoteType === 'CRYPTOCURRENCY') {
+        if (quoteType === 'CRYPTOCURRENCY' || (quoteType === 'CRYPTOCURRENCY' && symbol.endsWith('-USD'))) {
           assetType = 'CRYPTO';
-        } else if (quoteType === 'INDEX' || symbol.startsWith('^')) {
-          assetType = 'INDEX';
+        } else if (quoteType === 'ETF' || quoteType === 'MUTUALFUND') {
+          assetType = 'STOCK';
+        } else if (quoteType === 'INDEX' || symbol.startsWith('^') || quoteType === 'INDEX') {
+          // Map indices to STOCK since we don't have an INDEX enum
+          assetType = 'STOCK';
+        } else if (quoteType === 'COMMODITY') {
+          assetType = 'COMMODITY';
+        } else {
+          assetType = 'STOCK';
         }
         
         return {

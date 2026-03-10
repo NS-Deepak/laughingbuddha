@@ -127,7 +127,7 @@ export function PortfolioTable({ userId }: PortfolioTableProps) {
         sortable: true,
         filter: false,
         resizable: true,
-        suppressMenu: true,
+        floatingFilter: false,
     }), []);
 
     const myTheme = themeQuartz

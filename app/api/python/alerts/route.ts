@@ -2,16 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/db';
 
-// GET alerts?user_id=xxx
+// GET alerts for authenticated user only
+// Self-review: Fixed security issue - was accepting user_id from URL params allowing data leaks
+// Now uses Clerk auth to ensure users can only see their own alerts
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const userId = searchParams.get('user_id');
+    // Get user from Clerk auth - this is the ONLY source of truth
+    const { userId } = await auth();
     
     if (!userId) {
-      return NextResponse.json([]);
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
+    // Query alerts only for authenticated user
     const alerts = await prisma.alert.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
@@ -20,7 +23,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(alerts);
   } catch (error) {
     console.error('Get alerts error:', error);
-    return NextResponse.json([]);
+    return NextResponse.json({ error: 'Failed to fetch alerts' }, { status: 500 });
   }
 }
 

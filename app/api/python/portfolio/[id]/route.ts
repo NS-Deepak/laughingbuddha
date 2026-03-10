@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/db';
 
+// Handle both GET (portfolio by userId) and DELETE (delete asset by assetId)
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const userId = params.userId;
+    const userId = params.id;
     
     // Get user's assets from database
     const assets = await prisma.asset.findMany({
@@ -30,6 +32,7 @@ export async function GET(
           
           let currentPrice = null;
           let priceChange24h = null;
+          let currency = 'USD';
           
           if (response.ok) {
             const data = await response.json();
@@ -38,6 +41,7 @@ export async function GET(
             const indicators = chart?.indicators?.quote?.[0];
             
             currentPrice = meta?.regularMarketPrice || null;
+            currency = meta?.currency || 'USD';
             
             // Calculate 24h change
             if (indicators?.close?.length >= 2 && currentPrice) {
@@ -58,6 +62,7 @@ export async function GET(
             added_at: asset.addedAt.toISOString(),
             current_price: currentPrice ? Number(currentPrice.toFixed(2)) : null,
             price_change_24h: priceChange24h,
+            currency,
           };
         } catch (err) {
           console.error(`Error fetching ${asset.symbol}:`, err);
@@ -70,6 +75,7 @@ export async function GET(
             added_at: asset.addedAt.toISOString(),
             current_price: null,
             price_change_24h: null,
+            currency: 'USD',
           };
         }
       })
@@ -79,5 +85,33 @@ export async function GET(
   } catch (error) {
     console.error('Portfolio error:', error);
     return NextResponse.json([]);
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { userId } = await auth();
+    
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    const assetId = params.id;
+    
+    // Delete only if user owns the asset
+    await prisma.asset.delete({
+      where: {
+        id: assetId,
+        userId, // ownership check
+      },
+    });
+    
+    return NextResponse.json({ status: 'deleted', id: assetId });
+  } catch (error) {
+    console.error('Delete portfolio error:', error);
+    return NextResponse.json({ error: 'Failed to delete asset' }, { status: 500 });
   }
 }

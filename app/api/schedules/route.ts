@@ -59,6 +59,9 @@ export async function POST(request: NextRequest) {
     
     const { name, targetTime, daysOfWeek, assetIds } = parsed.data;
     
+    // Handle empty or invalid assetIds
+    const validAssetIds = Array.isArray(assetIds) ? assetIds.filter(Boolean) : [];
+    
     // Create schedule with linked assets
     const schedule = await prisma.schedule.create({
       data: {
@@ -66,11 +69,11 @@ export async function POST(request: NextRequest) {
         name,
         targetTime,
         daysOfWeek,
-        assets: {
-          create: assetIds.map((assetId) => ({
+        assets: validAssetIds.length > 0 ? {
+          create: validAssetIds.map((assetId) => ({
             asset: { connect: { id: assetId } }
           }))
-        }
+        } : undefined
       },
       include: {
         assets: {

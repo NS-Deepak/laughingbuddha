@@ -7,9 +7,7 @@ export const createScheduleSchema = z.object({
   daysOfWeek: z.array(
     z.number().int().min(1).max(7)
   ).min(1, 'Select at least one day'),
-  assetIds: z.array(
-    z.string().cuid()
-  ).min(1, 'Select at least one asset'),
+  assetIds: z.array(z.string()).optional().default([]),
 });
 
 export const updateScheduleSchema = createScheduleSchema.partial().extend({
@@ -26,7 +24,7 @@ export const updateUserSchema = z.object({
 export const createAssetSchema = z.object({
   symbol: z.string().min(1, 'Symbol is required'),
   name: z.string().min(1, 'Name is required'),
-  assetType: z.enum(['STOCK', 'CRYPTO', 'COMMODITY']),
+  assetType: z.enum(['STOCK', 'CRYPTO', 'COMMODITY', 'INDEX']),
   exchange: z.string().min(1, 'Exchange is required'),
 });
 

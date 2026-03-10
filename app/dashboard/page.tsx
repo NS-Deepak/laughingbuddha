@@ -4,7 +4,6 @@ import { DashboardSummary } from "../../components/dashboard/dashboard-summary";
 import { MarketTicker } from "../../components/dashboard/market-ticker";
 import { QuickAdd } from "../../components/dashboard/quick-add";
 import { InlineSearch } from "../../components/portfolio/inline-search";
-import TelegramLink from "../../components/TelegramLink";
 
 export default async function DashboardPage() {
     const user = await currentUser();
@@ -26,9 +25,6 @@ export default async function DashboardPage() {
 
             {/* Fast Picks - Quick Add Assets */}
             <QuickAdd userId={userId} />
-
-            {/* Telegram account linking */}
-            <TelegramLink />
 
             {/* Your Watchlist */}
             <div className="bg-binance-surface rounded-xl border border-binance-border overflow-hidden shadow-xl shadow-black/20">

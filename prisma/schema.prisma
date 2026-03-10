@@ -16,6 +16,7 @@ enum AssetType {
   STOCK
   CRYPTO
   COMMODITY
+  INDEX
 }
 
 enum TriggerType {
@@ -62,8 +63,8 @@ model Alert {
 model Asset {
   id              String      @id @default(uuid())
   userId          String      @map("user_id")
-  symbol          String      // e.g., "RELIANCE.NS", "BTC-USD"
-  name            String      // e.g., "Reliance Industries", "Bitcoin"
+  symbol          String      // e.g., "SWIGGY.NS", "BTC-USD"
+  name            String      // e.g., "SWIGGY", "Bitcoin"
   assetType       AssetType   @map("asset_type")
   exchange        String      // "NSE", "BSE", "BINANCE", "COINBASE"
   addedAt         DateTime    @default(now()) @map("added_at")

@@ -3,10 +3,42 @@ import { AlertList } from "@/components/alerts/alert-list";
 import { SearchCommand } from "@/components/omnibar/search-command";
 import Link from 'next/link';
 import { ChevronLeft, Bell, Settings } from 'lucide-react';
+import { prisma } from "@/lib/db";
+
+// Helper to get monthly alert executions (last 30 days)
+async function getMonthlyAlertStats(userId: string) {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    // Count alerts triggered in last 30 days
+    const alertCount = await prisma.alert.count({
+        where: {
+            userId,
+            lastSentAt: {
+                gte: thirtyDaysAgo
+            }
+        }
+    });
+    
+    // Get active alerts count
+    const activeCount = await prisma.alert.count({
+        where: {
+            userId,
+            isActive: true
+        }
+    });
+    
+    return { activeCount, alertCount };
+}
 
 export default async function AlertsPage() {
     const user = await currentUser();
     const userId = user?.id || "demo_user";
+    
+    // Fetch real data from database
+    const { activeCount, alertCount } = await getMonthlyAlertStats(userId);
+    const monthlyQuota = 5000; // Default for free tier
+    const quotaPercentage = Math.round((alertCount / monthlyQuota) * 100);
 
     return (
         <div className="flex flex-col gap-6 p-6 min-h-screen bg-binance-bg text-binance-text">
@@ -38,14 +70,14 @@ export default async function AlertsPage() {
                         <div className="space-y-4">
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-binance-secondary">Total Active</span>
-                                <span className="font-mono font-bold text-binance-up">14</span>
+                                <span className="font-mono font-bold text-binance-up">{activeCount}</span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-binance-secondary">Monthly Quota</span>
-                                <span className="font-mono">842 / 5000</span>
+                                <span className="font-mono">{alertCount} / {monthlyQuota}</span>
                             </div>
                             <div className="w-full bg-binance-bg h-1.5 rounded-full overflow-hidden mt-1">
-                                <div className="bg-binance-brand h-full w-[15%]" />
+                                <div className="bg-binance-brand h-full" style={{ width: `${quotaPercentage}%` }} />
                             </div>
                         </div>
                     </div>
@@ -53,9 +85,9 @@ export default async function AlertsPage() {
                     <div className="bg-binance-surface p-6 rounded-xl border border-binance-border">
                         <h3 className="text-xs font-bold text-binance-secondary uppercase tracking-widest mb-4 font-bold">Channels</h3>
                         <div className="space-y-3">
-                            <div className="flex items-center justify-between p-3 bg-binance-bg rounded-lg border border-binance-border">
+                            <div className="flex items-center justify-between p-3 bg-binance-bg rounded-lg border border-binance-border opacity-50">
                                 <span className="text-xs font-medium">Telegram</span>
-                                <span className="text-[10px] bg-binance-up/10 text-binance-up px-2 py-0.5 rounded border border-binance-up/20">CONNECTED</span>
+                                <span className="text-[10px] bg-binance-secondary/10 text-binance-secondary px-2 py-0.5 rounded border border-binance-secondary/20 font-bold uppercase italic">Setup in Profile</span>
                             </div>
                             <div className="flex items-center justify-between p-3 bg-binance-bg rounded-lg border border-binance-border opacity-50">
                                 <span className="text-xs font-medium">WhatsApp</span>
