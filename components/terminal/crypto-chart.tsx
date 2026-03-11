@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { createChart, ColorType, ISeriesApi, Time, CandlestickSeries } from 'lightweight-charts';
+import { createChart, ColorType, ISeriesApi, Time } from 'lightweight-charts';
 import { useCryptoStore } from '@/lib/stores/crypto-store';
 import { cn } from "@/lib/utils";
 
@@ -38,7 +38,7 @@ export function CryptoChart({ symbol }: CryptoChartProps) {
             },
         });
 
-        seriesRef.current = chartRef.current.addSeries(CandlestickSeries, {
+        seriesRef.current = chartRef.current.addCandlestickSeries({
             upColor: '#0ECB81',
             downColor: '#F6465D',
             borderVisible: false,

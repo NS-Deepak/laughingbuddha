@@ -1,0 +1,39 @@
+name: 🔔 Ping Cron Endpoint
+
+# FREE for public repos - unlimited pings!
+# Runs every minute and calls our Vercel API
+
+on:
+  schedule:
+    # Run every minute
+    - cron: '* * * * *'
+  
+  # Manual trigger
+  workflow_dispatch:
+
+# Prevent concurrent runs
+concurrency:
+  group: cron-ping
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    name: 📡 Ping Scheduler
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    
+    steps:
+      - name: 🔔 Trigger Laughing Buddha Scheduler
+        run: |
+          response=$(curl -s -w "\n%{http_code}" -X POST "https://laughingbuddha.vercel.app/api/cron/external")
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "HTTP Status: $http_code"
+          echo "Response: $body"
+          
+          if [ "$http_code" = "200" ]; then
+            echo "✅ Scheduler triggered successfully"
+          else
+            echo "⚠️ Scheduler returned: $http_code"
+          fi

@@ -110,3 +110,25 @@ To keep your keys safe, go to **Settings > Secrets and variables > Actions** and
 [Manually Trigger GitHub Actions Workflows](https://www.youtube.com/watch?v=nQRgTUwGBBA)
 
 This video explains how to use the `workflow_dispatch` event to manually run your GitHub Actions directly from the repository UI.
+
+---
+
+## Windows Prisma Build Stability
+
+If you hit recurring `EPERM ... query_engine-windows...` errors on Windows:
+
+1. Use the safe generator wrapper:
+```bash
+npm run prisma:generate:safe
+```
+
+2. Build with:
+```bash
+npm run build
+```
+
+3. Avoid running local build while `next dev` is running in the same repo.
+
+4. Add Windows Defender exclusion for this repo and `node_modules/.prisma` to reduce file lock contention.
+
+5. Prefer CI/Vercel as production build source; local machine should be treated as dev-first.
