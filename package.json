@@ -6,7 +6,7 @@
     "dev": "next dev",
     "prisma:generate": "prisma generate",
     "prisma:generate:safe": "node scripts/prisma-generate-safe.mjs",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "build:local": "next build",
     "build:ci": "prisma generate && next build",
     "start": "next start",

@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { updateScheduleSchema } from '@/lib/validations';
+import { convertLocalTimeToUtc } from '@/lib/timezone';
 
 // PATCH: Update schedule
 export async function PATCH(
@@ -29,6 +30,11 @@ export async function PATCH(
     }
     
     const { name, targetTime, daysOfWeek, isActive, assetIds } = parsed.data;
+    const userProfile = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { timezone: true }
+    });
+    const timezone = userProfile?.timezone || 'UTC';
     
     // P0 FIX: Use $transaction for atomicity
     // P0 FIX: Ownership check baked into update query
@@ -66,6 +72,16 @@ export async function PATCH(
           }
         }
       });
+
+      if (targetTime !== undefined) {
+        const targetTimeUtc = convertLocalTimeToUtc(targetTime, timezone);
+        try {
+          await tx.$executeRaw`UPDATE schedules SET target_time_utc = ${targetTimeUtc} WHERE id = ${params.id}`;
+        } catch (error) {
+          // Migration may not be applied yet; don't fail schedule update.
+          console.warn('Could not persist target_time_utc for schedule update:', error);
+        }
+      }
       
       return updated;
     });

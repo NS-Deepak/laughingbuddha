@@ -2,14 +2,11 @@ import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
+import { convertLocalTimeToUtc, isValidIanaTimezone } from '@/lib/timezone';
 
 const updateUserSchema = z.object({
   telegramChatId: z.string().regex(/^\d+$/, 'Must be numeric').optional(),
-  timezone: z.string().refine((val) =>
-    Intl.DateTimeFormat.supportedLocalesOf([val]).length > 0 ||
-    ['Asia/Kolkata', 'America/New_York', 'Europe/London', 'UTC'].includes(val),
-    { message: 'Invalid IANA timezone' }
-  ).optional(),
+  timezone: z.string().refine((val) => isValidIanaTimezone(val), { message: 'Invalid IANA timezone' }).optional(),
 });
 
 export async function GET() {
@@ -76,6 +73,24 @@ export async function PATCH(request: NextRequest) {
         ...(timezone !== undefined && { timezone })
       }
     });
+  }
+
+  // If timezone changed, recalculate UTC time for all existing schedules.
+  if (timezone !== undefined) {
+    const schedules = await prisma.schedule.findMany({
+      where: { userId },
+      select: { id: true, targetTime: true }
+    });
+
+    for (const schedule of schedules) {
+      const targetTimeUtc = convertLocalTimeToUtc(schedule.targetTime, timezone);
+      try {
+        await prisma.$executeRaw`UPDATE schedules SET target_time_utc = ${targetTimeUtc} WHERE id = ${schedule.id}`;
+      } catch (error) {
+        // Migration may not be applied yet; don't fail profile update.
+        console.warn('Could not persist target_time_utc during timezone update:', error);
+      }
+    }
   }
 
   return NextResponse.json(user);

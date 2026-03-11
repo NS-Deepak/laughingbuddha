@@ -84,6 +84,7 @@ model Schedule {
   
   name            String      @default("Daily Update") // e.g., "Market Open", "Evening Digest"
   targetTime      String      @map("target_time") // "09:00" (24-hour format in user's timezone)
+  targetTimeUtc   String?     @map("target_time_utc") // "03:30" UTC equivalent for current timezone rule
   daysOfWeek      Int[]       @map("days_of_week") // [1,2,3,4,5] for Mon-Fri (1=Monday, 7=Sunday)
   
   isActive        Boolean     @default(true) @map("is_active")
