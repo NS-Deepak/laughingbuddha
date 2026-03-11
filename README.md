@@ -117,18 +117,29 @@ This video explains how to use the `workflow_dispatch` event to manually run you
 
 If you hit recurring `EPERM ... query_engine-windows...` errors on Windows:
 
-1. Use the safe generator wrapper:
-```bash
-npm run prisma:generate:safe
-```
-
-2. Build with:
+1. Local safe build (no Prisma generate in normal local build):
 ```bash
 npm run build
 ```
 
-3. Avoid running local build while `next dev` is running in the same repo.
+2. Deploy/CI build (always regenerate Prisma client):
+```bash
+npm run build:deploy
+```
 
-4. Add Windows Defender exclusion for this repo and `node_modules/.prisma` to reduce file lock contention.
+3. Use the safe generator wrapper manually when needed:
+```bash
+npm run prisma:generate:safe
+```
 
-5. Prefer CI/Vercel as production build source; local machine should be treated as dev-first.
+4. Apply DB schema changes separately from build:
+```bash
+npx prisma migrate status
+npx prisma migrate deploy
+```
+
+5. If Windows still throws Prisma `EPERM`, stop dev/watch processes before running Prisma commands.
+
+6. Add Windows Defender exclusion for this repo and `node_modules/.prisma` to reduce file lock contention.
+
+7. Vercel is configured to run `npm run build:deploy` via `vercel.json`.

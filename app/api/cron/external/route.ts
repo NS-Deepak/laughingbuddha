@@ -1,19 +1,17 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import { deliverRichScheduleMessage } from '@/lib/schedule-delivery';
 
-// Simple cron endpoint for external services (cron-job.org)
-// Runs once per call.
+// External cron endpoint for cron-job.org style pings.
 
 export async function POST(request: NextRequest) {
   try {
-    // Security check - optional token
     const token = request.headers.get('x-cron-token');
     const expectedToken = process.env.CRON_SECRET_TOKEN;
 
     if (expectedToken && token !== expectedToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    console.log('External cron triggered, running scheduler once...');
 
     const includeDebug = request.nextUrl.searchParams.get('debug') === '1';
     const result = await runSchedulerOnce(includeDebug);
@@ -37,7 +35,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Allow GET for testing
 export async function GET() {
   return NextResponse.json({
     status: 'ok',
@@ -78,33 +75,25 @@ function getLocalScheduleContext(date: Date, timezone: string) {
   };
 }
 
-// Run scheduler logic inline
 async function runSchedulerOnce(_includeDebug: boolean) {
-  const { prisma } = await import('@/lib/db');
-  const { sendMessage } = await import('@/lib/telegram');
-
   const now = new Date();
 
   let sent = 0;
   let skipped = 0;
+
   const debug = {
     nowUtc: now.toISOString(),
-    priceAlerts: {
-      total: 0,
-      sent: 0,
-      skippedNoAsset: 0,
-      skippedNoTelegram: 0,
-      skippedNotPriceLimit: 0,
-      skippedInvalidPrices: 0,
-      fetchFailures: 0,
-    },
     schedules: {
       total: 0,
       matchedWindow: 0,
       sent: 0,
+      formattedMessageType: 'rich' as const,
+      totalPricedAssets: 0,
+      totalFailedAssets: 0,
       skippedWrongDayOrTime: 0,
       skippedAlreadySentToday: 0,
       skippedNoTelegram: 0,
+      skippedDeliveryFailed: 0,
       sample: [] as Array<{
         id: string;
         name: string;
@@ -116,87 +105,21 @@ async function runSchedulerOnce(_includeDebug: boolean) {
       }>,
     },
   };
+
   const addScheduleSample = (entry: (typeof debug.schedules.sample)[number]) => {
-    if (debug.schedules.sample.length < 8) {
+    if (debug.schedules.sample.length < 10) {
       debug.schedules.sample.push(entry);
     }
   };
 
   try {
-    // Get active price alerts
-    const alerts = await prisma.alert.findMany({
-      where: { isActive: true },
-    });
-    debug.priceAlerts.total = alerts.length;
-
-    // Get user assets for price comparison
-    const assets = await prisma.asset.findMany({
-      include: { user: true },
-    });
-
-    // Check each price alert
-    for (const alert of alerts) {
-      const asset = assets.find((a) => a.symbol === alert.assetSymbol && a.userId === alert.userId);
-      if (!asset) {
-        skipped++;
-        debug.priceAlerts.skippedNoAsset++;
-        continue;
-      }
-
-      const user = await prisma.user.findUnique({
-        where: { id: alert.userId },
-      });
-
-      if (!user?.telegramChatId) {
-        skipped++;
-        debug.priceAlerts.skippedNoTelegram++;
-        continue;
-      }
-
-      if (alert.triggerType !== 'PRICE_LIMIT') {
-        skipped++;
-        debug.priceAlerts.skippedNotPriceLimit++;
-        continue;
-      }
-
-      if (user.telegramChatId && alert.triggerType === 'PRICE_LIMIT') {
-        try {
-          const tickerBase = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-          const priceResponse = await fetch(`${tickerBase}/api/python/ticker?symbol=${alert.assetSymbol}`);
-          const priceData = await priceResponse.json();
-          const currentPrice = parseFloat(priceData.price || '0');
-          const triggerPrice = parseFloat(alert.triggerValue);
-
-          if (currentPrice > 0 && triggerPrice > 0) {
-            const direction = currentPrice >= triggerPrice ? 'above' : 'below';
-            await sendMessage(
-              user.telegramChatId,
-              `${alert.assetSymbol} Alert\n\nCurrent: $${currentPrice}\nTarget: $${triggerPrice}\nStatus: ${direction} target`
-            );
-            sent++;
-            debug.priceAlerts.sent++;
-          } else {
-            skipped++;
-            debug.priceAlerts.skippedInvalidPrices++;
-          }
-        } catch (e) {
-          console.log('Could not fetch price for', alert.assetSymbol, e);
-          skipped++;
-          debug.priceAlerts.fetchFailures++;
-        }
-      }
-    }
-
-    // Check scheduled digests (timezone-aware + idempotent)
     const schedules = await prisma.schedule.findMany({
       where: { isActive: true },
       include: {
         user: true,
-        assets: {
-          include: { asset: true },
-        },
       },
     });
+
     debug.schedules.total = schedules.length;
 
     for (const schedule of schedules) {
@@ -218,9 +141,9 @@ async function runSchedulerOnce(_includeDebug: boolean) {
         });
         continue;
       }
+
       debug.schedules.matchedWindow++;
 
-      // Idempotency guard: send only once per local day.
       const claim = await prisma.schedule.updateMany({
         where: {
           id: schedule.id,
@@ -248,9 +171,17 @@ async function runSchedulerOnce(_includeDebug: boolean) {
         continue;
       }
 
-      if (!schedule.user?.telegramChatId) {
-        skipped++;
-        debug.schedules.skippedNoTelegram++;
+      const result = await deliverRichScheduleMessage({
+        scheduleId: schedule.id,
+        userId: schedule.userId,
+        now,
+      });
+
+      if (result.sent) {
+        sent++;
+        debug.schedules.sent++;
+        debug.schedules.totalPricedAssets += result.pricedCount;
+        debug.schedules.totalFailedAssets += result.failedCount;
         addScheduleSample({
           id: schedule.id,
           name: schedule.name,
@@ -258,27 +189,25 @@ async function runSchedulerOnce(_includeDebug: boolean) {
           localTime,
           localDay,
           timezone,
-          reason: 'no_telegram_chat_id',
+          reason: 'sent',
         });
-        continue;
+      } else {
+        skipped++;
+        if (result.reason === 'telegram_not_linked') {
+          debug.schedules.skippedNoTelegram++;
+        } else {
+          debug.schedules.skippedDeliveryFailed++;
+        }
+        addScheduleSample({
+          id: schedule.id,
+          name: schedule.name,
+          targetTime: schedule.targetTime,
+          localTime,
+          localDay,
+          timezone,
+          reason: result.reason || 'delivery_failed',
+        });
       }
-
-      const assetList = schedule.assets.map((sa) => sa.asset.symbol).join(', ');
-      await sendMessage(
-        schedule.user.telegramChatId,
-        `Daily Digest - ${localDate}\n\nAssets: ${assetList || 'All'}\n\nYour scheduled update is ready!`
-      );
-      sent++;
-      debug.schedules.sent++;
-      addScheduleSample({
-        id: schedule.id,
-        name: schedule.name,
-        targetTime: schedule.targetTime,
-        localTime,
-        localDay,
-        timezone,
-        reason: 'sent',
-      });
     }
   } catch (error) {
     console.error('Scheduler error:', error);
