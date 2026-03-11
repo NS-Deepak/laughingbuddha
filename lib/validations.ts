@@ -24,7 +24,8 @@ export const updateUserSchema = z.object({
 export const createAssetSchema = z.object({
   symbol: z.string().min(1, 'Symbol is required'),
   name: z.string().min(1, 'Name is required'),
-  assetType: z.enum(['STOCK', 'CRYPTO', 'COMMODITY', 'INDEX']),
+  // Keep aligned with currently supported persisted enum values.
+  assetType: z.enum(['STOCK', 'CRYPTO', 'COMMODITY']),
   exchange: z.string().min(1, 'Exchange is required'),
 });
 
