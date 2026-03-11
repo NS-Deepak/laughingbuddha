@@ -7,66 +7,145 @@ import {
     LayoutDashboard,
     Zap,
     User,
-    LogOut
+    LogOut,
+    ChevronLeft,
+    ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SignOutButton } from "@clerk/nextjs";
+import { useSidebar } from './sidebar-context';
 
 export function Sidebar() {
     const pathname = usePathname();
+    const { collapsed, toggle } = useSidebar();
 
     const navItems = [
         { name: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-        { name: 'Terminal', icon: Zap, href: '/terminal/BTC-USD' },
-        { name: 'Notifications', icon: Bell, href: '/dashboard/notifications' },
+        { name: 'Terminal',  icon: Zap,             href: '/terminal/BTC-USD' },
+        { name: 'Alerts',    icon: Bell,            href: '/dashboard/notifications' },
+        { name: 'Account',   icon: User,            href: '/dashboard/profile' },
     ];
 
     return (
-        <aside className="w-64 border-r border-binance-border bg-binance-surface flex flex-col h-screen fixed left-0 top-0 z-30">
-            <div className="p-6">
-                <div className="flex items-center gap-3 px-2">
-                    <img src="/laughingbuddha.png" alt="Logo" className="w-8 h-8 rounded-lg shadow-lg shadow-black/20" />
-                    <div>
-                        <h1 className="text-sm font-black tracking-tighter text-binance-text uppercase italic">Laughing Buddha</h1>
-                        <p className="text-[10px] text-binance-brand font-bold tracking-widest uppercase">PRO TERMINAL</p>
+        <>
+            {/* ── Desktop Sidebar ── */}
+            <aside
+                className={cn(
+                    'hidden md:flex flex-col h-screen fixed left-0 top-0 z-30',
+                    'border-r border-binance-border bg-binance-surface',
+                    'transition-[width] duration-200 ease-in-out overflow-hidden',
+                    collapsed ? 'w-16' : 'w-64'
+                )}
+            >
+                {/* Logo + toggle */}
+                <div className={cn(
+                    'flex items-center h-16 border-b border-binance-border px-3 shrink-0',
+                    collapsed ? 'justify-center' : 'justify-between'
+                )}>
+                    {!collapsed && (
+                        <div className="flex items-center gap-2 min-w-0">
+                            <img
+                                src="/laughingbuddha.png"
+                                alt="Logo"
+                                className="w-7 h-7 rounded-md shrink-0"
+                            />
+                            <div className="min-w-0">
+                                <p className="text-xs font-black tracking-tighter text-binance-text uppercase italic truncate">
+                                    Laughing Buddha
+                                </p>
+                                <p className="text-[9px] text-binance-brand font-bold tracking-widest uppercase">
+                                    PRO TERMINAL
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {collapsed && (
+                        <img
+                            src="/laughingbuddha.png"
+                            alt="Logo"
+                            className="w-7 h-7 rounded-md"
+                        />
+                    )}
+
+                    <button
+                        onClick={toggle}
+                        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                        className={cn(
+                            'p-1.5 rounded-md text-binance-secondary hover:text-binance-text hover:bg-binance-bg transition-colors shrink-0',
+                            collapsed ? 'mt-0' : ''
+                        )}
+                    >
+                        {collapsed
+                            ? <ChevronRight className="w-4 h-4" />
+                            : <ChevronLeft  className="w-4 h-4" />
+                        }
+                    </button>
+                </div>
+
+                {/* Nav items */}
+                <nav className="flex-1 py-3 px-2 space-y-1 overflow-hidden">
+                    {navItems.map((item) => {
+                        const active = pathname === item.href;
+                        return (
+                            <Link
+                                key={item.name}
+                                href={item.href}
+                                title={collapsed ? item.name : undefined}
+                                className={cn(
+                                    'flex items-center rounded-lg text-sm font-medium transition-all group',
+                                    collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5',
+                                    active
+                                        ? 'bg-binance-brand text-black'
+                                        : 'text-binance-secondary hover:text-binance-text hover:bg-binance-bg'
+                                )}
+                            >
+                                <item.icon className={cn(
+                                    'shrink-0',
+                                    collapsed ? 'w-5 h-5' : 'w-4 h-4',
+                                    active ? 'text-black' : 'text-binance-secondary group-hover:text-binance-brand'
+                                )} />
+                                {!collapsed && <span className="truncate">{item.name}</span>}
+                            </Link>
+                        );
+                    })}
+                </nav>
+
+                {/* Sign out */}
+                <div className={cn(
+                    'p-2 border-t border-binance-border shrink-0',
+                )}>
+                    <div
+                        className={cn(
+                            'flex items-center rounded-lg text-sm font-medium text-binance-secondary hover:text-binance-down transition-colors cursor-pointer',
+                            collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2'
+                        )}
+                        title={collapsed ? 'Sign out' : undefined}
+                    >
+                        <LogOut className={cn('shrink-0', collapsed ? 'w-5 h-5' : 'w-4 h-4')} />
+                        {!collapsed && <SignOutButton />}
                     </div>
                 </div>
-            </div>
+            </aside>
 
-            <nav className="flex-1 px-4 space-y-2">
+            {/* ── Mobile Bottom Tab Bar ── */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-binance-surface border-t border-binance-border flex items-stretch">
                 {navItems.map((item) => (
                     <Link
                         key={item.name}
                         href={item.href}
                         className={cn(
-                            "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group",
+                            'flex-1 flex flex-col items-center justify-center gap-1 py-3 text-[10px] font-semibold tracking-wide transition-colors',
                             pathname === item.href
-                                ? "bg-binance-brand text-black"
-                                : "text-binance-secondary hover:text-binance-text hover:bg-binance-bg"
+                                ? 'text-binance-brand'
+                                : 'text-binance-secondary hover:text-binance-text'
                         )}
                     >
-                        <item.icon className={cn(
-                            "w-4 h-4",
-                            pathname === item.href ? "text-black" : "text-binance-secondary group-hover:text-binance-brand"
-                        )} />
+                        <item.icon className="w-5 h-5" />
                         {item.name}
                     </Link>
                 ))}
             </nav>
-
-            <div className="p-4 mt-auto border-t border-binance-border space-y-2">
-                <Link
-                    href="/dashboard/profile"
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-binance-secondary hover:text-binance-text transition-colors"
-                >
-                    <User className="w-4 h-4" />
-                    Account
-                </Link>
-                <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-binance-secondary hover:text-binance-down transition-colors cursor-pointer">
-                    <LogOut className="w-4 h-4" />
-                    <SignOutButton />
-                </div>
-            </div>
-        </aside>
+        </>
     );
 }

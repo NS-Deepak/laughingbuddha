@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { SignedIn, SignedOut } from '@clerk/nextjs';
+import { MobileNav } from '@/components/marketing/mobile-nav';
 import './marketing.css';
 
 export default function MarketingPage() {
@@ -29,6 +30,8 @@ export default function MarketingPage() {
             <Link href="/sign-in" className="btn-ghost" style={{ display: 'inline-flex', alignItems: 'center' }}>Sign In</Link>
             <Link href="/sign-up" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center' }}>Start Free →</Link>
           </SignedOut>
+          {/* Hamburger — visible only on ≤1024px via CSS */}
+          <MobileNav />
         </div>
       </nav>
 

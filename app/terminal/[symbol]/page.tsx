@@ -6,6 +6,8 @@ import { CryptoChart } from '@/components/terminal/crypto-chart';
 import { InlineSearch } from '@/components/portfolio/inline-search';
 import Link from 'next/link';
 import { ChevronLeft, Share2, Star, Zap, Heart, BarChart3, Activity, ArrowDown, ArrowUp } from 'lucide-react';
+import { SidebarProvider } from '@/components/layout/sidebar-context';
+import { Sidebar } from '@/components/layout/sidebar';
 
 interface Trade {
   id: number;
@@ -43,6 +45,9 @@ export default function TerminalPage() {
     const tradeWs = new WebSocket(`wss://stream.binance.com:9443/ws/${binanceSymbol}@trade`);
     const depthWs = new WebSocket(`wss://stream.binance.com:9443/ws/${binanceSymbol}@depth20@100ms`);
     
+    tradeWs.onerror = (err) => console.error('Trade WebSocket error:', err);
+    depthWs.onerror = (err) => console.error('Depth WebSocket error:', err);
+
     tradeWs.onmessage = (event) => {
       const data = JSON.parse(event.data);
       const trade: Trade = {
@@ -65,8 +70,12 @@ export default function TerminalPage() {
     };
     
     return () => {
-      tradeWs.close();
-      depthWs.close();
+      if (tradeWs.readyState === WebSocket.OPEN || tradeWs.readyState === WebSocket.CONNECTING) {
+        tradeWs.close();
+      }
+      if (depthWs.readyState === WebSocket.OPEN || depthWs.readyState === WebSocket.CONNECTING) {
+        depthWs.close();
+      }
     };
   }, [binanceSymbol]);
 
@@ -104,15 +113,17 @@ export default function TerminalPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-binance-bg text-binance-text overflow-hidden">
+    <SidebarProvider>
+      <div className="flex flex-col h-screen bg-binance-bg text-binance-text overflow-hidden pb-16 md:pb-0">
+        <Sidebar />
       {/* Top Navigation */}
-      <header className="h-14 border-b border-binance-border flex items-center justify-between px-4 bg-binance-surface/50">
-        <div className="flex items-center gap-4">
+      <header className="h-14 border-b border-binance-border flex items-center justify-between px-4 bg-binance-surface/50 gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           <Link href="/dashboard" className="text-binance-secondary hover:text-binance-text transition-colors">
             <ChevronLeft className="w-5 h-5" />
           </Link>
           <div className="h-6 w-[1px] bg-binance-border" />
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <h1 className="text-lg font-bold tracking-tight">{symbol}</h1>
             <div className="flex items-center gap-1.5 bg-binance-bg px-2 py-0.5 rounded border border-binance-border">
               <Zap className="w-3 h-3 text-binance-brand fill-binance-brand" />
@@ -121,7 +132,8 @@ export default function TerminalPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 flex-1 max-w-xl mx-auto">
+        {/* Search — hidden on mobile */}
+        <div className="hidden md:flex items-center gap-4 flex-1 max-w-xl mx-auto">
           <InlineSearch
             userId="demo_user"
             mode="navigate"
@@ -145,6 +157,19 @@ export default function TerminalPage() {
           <button 
             onClick={handleTrade}
             className="bg-binance-brand text-black font-bold text-xs px-4 py-2 rounded-lg hover:bg-yellow-400 transition-all shadow-lg shadow-binance-brand/10 shrink-0"
+          >
+            TRADE
+          </button>
+        </div>
+
+        {/* Mobile: just share + trade */}
+        <div className="flex md:hidden items-center gap-2">
+          <button onClick={handleShare} className="p-2 text-binance-secondary">
+            <Share2 className="w-4 h-4" />
+          </button>
+          <button 
+            onClick={handleTrade}
+            className="bg-binance-brand text-black font-bold text-xs px-3 py-1.5 rounded-lg"
           >
             TRADE
           </button>
@@ -219,8 +244,8 @@ export default function TerminalPage() {
           </div>
         </section>
 
-        {/* Right Column: Order Book (Side by Side) & Recent Trades */}
-        <aside className="w-96 border-l border-binance-border flex flex-col bg-binance-surface/20">
+        {/* Right Column: Order Book + Recent Trades — hidden on mobile */}
+        <aside className="hidden lg:flex w-96 border-l border-binance-border flex-col bg-binance-surface/20">
           {/* Order Book - Side by Side */}
           <div className="h-[55%] flex flex-col border-b border-binance-border">
             <div className="px-4 py-2 border-b border-binance-border bg-binance-surface/50">
@@ -326,5 +351,6 @@ export default function TerminalPage() {
         </div>
       </footer>
     </div>
+    </SidebarProvider>
   );
 }

@@ -441,7 +441,7 @@ export default function NotificationsPage() {
                 <h3 className="font-bold">Create Scheduled Digest</h3>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs text-binance-secondary mb-1">Name</label>
                   <input
@@ -466,7 +466,7 @@ export default function NotificationsPage() {
 
               <div>
                 <label className="block text-xs text-binance-secondary mb-2">Days</label>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {DAYS.map(day => (
                     <button
                       key={day.value}
@@ -576,7 +576,7 @@ export default function NotificationsPage() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
         <div className="bg-binance-surface rounded-xl border border-binance-border p-4">
           <div className="flex items-center gap-2 text-binance-secondary text-xs mb-1">
             <Bell className="w-3 h-3" />

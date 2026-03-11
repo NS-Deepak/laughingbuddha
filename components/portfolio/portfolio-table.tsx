@@ -80,31 +80,32 @@ export function PortfolioTable({ userId }: PortfolioTableProps) {
         {
             field: 'name',
             headerName: 'Asset',
-            flex: 2,
-            cellClass: 'font-medium'
+            minWidth: 160,
+            flex: 1,
+            cellClass: 'flex items-center font-medium'
         },
         {
             field: 'symbol',
             headerName: 'Ticker',
-            flex: 1,
-            cellClass: 'text-binance-secondary font-mono text-xs'
+            minWidth: 80,
+            cellClass: 'flex items-center text-binance-secondary font-mono text-xs'
         },
         {
             field: 'asset_type',
             headerName: 'Type',
-            width: 100,
+            minWidth: 120,
             cellRenderer: BadgeCell
         },
         {
             field: 'current_price',
             headerName: 'Price',
-            flex: 1,
+            minWidth: 110,
             cellRenderer: PriceCell
         },
         {
             field: 'price_change_24h',
             headerName: '24h Change',
-            flex: 1,
+            minWidth: 100,
             cellRenderer: ChangeCell
         },
         {

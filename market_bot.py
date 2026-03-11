@@ -20,6 +20,12 @@ MARKET_DATA = {
         "TCS": ["TCS.NS", "TCS.BO"],
         "Groww ETF": ["GROWW.NS", "GROWW.BO"],
     },
+    "🇺🇸 USA STOCKS": {
+        "Tesla": ["TSLA"],
+        "Nvidia": ["NVDA"],
+        "Apple": ["AAPL"],
+        "Amazon": ["AMZN"],
+    },
     "📀 COMMODITIES": {
         "Gold (BeES)": ["GOLDBEES.NS"],
         "Silver (BeES)": ["SILVERBEES.NS"],
@@ -28,7 +34,11 @@ MARKET_DATA = {
         "Bitcoin": ["BTC-INR"],
         "Ethereum": ["ETH-INR"],
         "Solana": ["SOL-INR"],
-        "Polygon (Matic)": ["MATIC-INR"], # Updated from MATIC to POL (rebranded)
+        "Polygon (Matic)": ["MATIC-INR"],
+    },
+    "🇯🇵 JAPAN STOCKS": {
+        "Toyota": ["7203.T"],
+        "Sony": ["6758.T"],
     }
 }
 
@@ -47,19 +57,19 @@ def send_update():
     ist = pytz.timezone('Asia/Kolkata')
     time_now = datetime.now(ist).strftime('%I:%M %p')
     
-    msg = f"🚀 *Market Update* ({time_now})\n"
+    msg = f"🚀 Market Update ({time_now})\n"
     msg += "----------------------------\n"
 
     for category, assets in MARKET_DATA.items():
-        # Add a spacing and a bold header for each category
-        msg += f"\n* {category} *\n"
+        # Clean header spacing
+        msg += f"\n {category} \n"
         
         for name, ticker_list in assets.items():
             try:
                 price = get_price(ticker_list)
                 if price:
-                    # Formatting currency for INR
-                    msg += f"• {name}: `₹{round(price, 2)}`\n"
+                    # Clean bullet and price format
+                    msg += f"• {name}: ₹{round(price, 2)}\n"
                 else:
                     msg += f"• {name}: ⚠️ Error\n"
             except Exception as e:

@@ -26,8 +26,10 @@ export function PriceCell(params: any) {
     if (price === undefined || price === null) return <span className="text-binance-secondary">N/A</span>;
 
     return (
-        <span className="font-mono text-binance-text font-medium">
-            {symbol}{price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </span>
+        <div className="flex items-center h-full">
+            <span className="font-mono text-binance-text font-medium">
+                {symbol}{price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+        </div>
     );
 }

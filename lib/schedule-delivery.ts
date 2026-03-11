@@ -10,11 +10,15 @@ type PriceItem =
       price: number;
       changePct: number;
       currency: string;
+      assetType: string;
+      exchange: string;
       ok: true;
     }
   | {
       symbol: string;
       name: string;
+      assetType: string;
+      exchange: string;
       ok: false;
     };
 
@@ -52,7 +56,7 @@ async function getScheduleById(scheduleId: string, userId: string) {
 function getCurrencySymbol(currency: string): string {
   switch (currency) {
     case 'INR':
-      return 'Rs';
+      return '₹';
     case 'USD':
       return '$';
     case 'EUR':
@@ -111,6 +115,8 @@ async function fetchSchedulePrices(schedule: NonNullable<ScheduleWithRelations>)
   const symbols = schedule.assets.map((sa) => ({
     symbol: sa.asset.symbol,
     name: sa.asset.name || sa.asset.symbol,
+    assetType: sa.asset.assetType,
+    exchange: sa.asset.exchange,
   }));
 
   const results: PriceItem[] = [];
@@ -124,12 +130,16 @@ async function fetchSchedulePrices(schedule: NonNullable<ScheduleWithRelations>)
         price: quote.price,
         changePct: quote.changePct,
         currency: quote.currency,
+        assetType: item.assetType,
+        exchange: item.exchange,
         ok: true,
       });
     } catch {
       results.push({
         symbol: item.symbol,
         name: item.name,
+        assetType: item.assetType,
+        exchange: item.exchange,
         ok: false,
       });
     }
@@ -138,44 +148,79 @@ async function fetchSchedulePrices(schedule: NonNullable<ScheduleWithRelations>)
   return results;
 }
 
+function getRegionHeader(type: string, exchange: string): string {
+    if (type === 'CRYPTO') return ' 🪙 CRYPTO ';
+    if (type === 'COMMODITY') return ' 📀 COMMODITIES ';
+    
+    const ex = (exchange || '').toUpperCase();
+    
+    if (ex === 'NSE' || ex === 'BSE' || ex.endsWith('.NS') || ex.endsWith('.BO')) return ' 🇮🇳 INDIAN STOCKS ';
+    if (ex === 'NYSE' || ex === 'NASDAQ' || ex === 'NYQ' || ex === 'NMS') return ' 🇺🇸 USA STOCKS ';
+    if (ex === 'TYO' || ex === 'T' || ex.endsWith('.T')) return ' 🇯🇵 JAPAN STOCKS ';
+    if (ex === 'HKG' || ex === 'HK' || ex.endsWith('.HK')) return ' 🇭🇰 HK STOCKS ';
+    if (ex === 'SSE' || ex === 'SZSE' || ex === 'SS' || ex === 'SZ' || ex.endsWith('.SS') || ex.endsWith('.SZ')) return ' 🇨🇳 CHINA STOCKS ';
+    
+    return type === 'STOCK' ? ' 📈 EQUITIES ' : ` ${type} `;
+}
+
 function formatRichScheduleMessage(
   schedule: NonNullable<ScheduleWithRelations>,
   prices: PriceItem[],
   now: Date
 ) {
-  const timezone = schedule.user?.timezone || 'UTC';
+  const timezone = schedule.user?.timezone || 'Asia/Kolkata';
   const timeStr = now.toLocaleTimeString('en-US', {
     timeZone: timezone,
     hour: '2-digit',
     minute: '2-digit',
     hour12: true,
   });
-  const dateStr = now.toLocaleDateString('en-US', {
-    timeZone: timezone,
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
 
-  let msg = `*${schedule.name}*\n`;
-  msg += `${dateStr} | ${timeStr}\n`;
-  msg += '--------------------\n\n';
+  let msg = `🚀 Market Update (${timeStr})\n`;
+  msg += '----------------------------\n';
 
+  // Group by calculated region header
+  const groups: Record<string, PriceItem[]> = {};
+  
   for (const item of prices) {
-    if (!item.ok) {
-      msg += `- *${item.name}*\n`;
-      msg += `  price unavailable\n\n`;
-      continue;
-    }
-
-    const trend = item.changePct > 0 ? '+' : item.changePct < 0 ? '-' : '=';
-    const prefix = getCurrencySymbol(item.currency);
-    msg += `${trend} *${item.name}*\n`;
-    msg += `  ${prefix}${item.price} (${item.changePct >= 0 ? '+' : ''}${item.changePct}%)\n\n`;
+    const header = getRegionHeader(item.assetType, item.exchange);
+    if (!groups[header]) groups[header] = [];
+    groups[header].push(item);
   }
 
-  msg += '--------------------\n';
-  msg += 'Powered by LaughingBuddha';
+  // Preferred order of headers
+  const headerOrder = [
+    ' 🇮🇳 INDIAN STOCKS ',
+    ' 🇺🇸 USA STOCKS ',
+    ' 📀 COMMODITIES ',
+    ' 🪙 CRYPTO ',
+    ' 🇯🇵 JAPAN STOCKS ',
+    ' 🇨🇳 CHINA STOCKS ',
+    ' 🇭🇰 HK STOCKS ',
+  ];
+
+  const sortedHeaders = Object.keys(groups).sort((a, b) => {
+    const indexA = headerOrder.indexOf(a);
+    const indexB = headerOrder.indexOf(b);
+    if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+    if (indexA !== -1) return -1;
+    if (indexB !== -1) return 1;
+    return a.localeCompare(b);
+  });
+
+  for (const header of sortedHeaders) {
+    msg += `\n${header}\n`;
+    
+    for (const item of groups[header]) {
+      if (!item.ok) {
+        msg += `• ${item.name}: ⚠️ Error\n`;
+        continue;
+      }
+
+      const prefix = getCurrencySymbol(item.currency);
+      msg += `• ${item.name}: ${prefix}${item.price}\n`;
+    }
+  }
 
   return msg;
 }

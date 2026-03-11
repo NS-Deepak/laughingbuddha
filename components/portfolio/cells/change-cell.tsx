@@ -1,4 +1,4 @@
-'use client';
+import { cn } from '@/lib/utils';
 
 export function ChangeCell(params: any) {
     const change = params.value;
@@ -7,8 +7,10 @@ export function ChangeCell(params: any) {
     const isPositive = change >= 0;
 
     return (
-        <span className={isPositive ? 'text-binance-up' : 'text-binance-down'}>
-            {isPositive ? '+' : ''}{change.toFixed(2)}%
-        </span>
+        <div className="flex items-center h-full">
+            <span className={cn(isPositive ? 'text-binance-up' : 'text-binance-down', "font-medium")}>
+                {isPositive ? '+' : ''}{change.toFixed(2)}%
+            </span>
+        </div>
     );
 }
