@@ -10,6 +10,9 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 export const metadata: Metadata = {
     title: "Laughing Buddha",
     description: "Serverless Financial Alerts via WhatsApp & Telegram",
+    icons: {
+        icon: "/laughingbuddha.png",
+    },
 };
 
 export default function RootLayout({

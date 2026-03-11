@@ -25,9 +25,7 @@ export function Sidebar() {
         <aside className="w-64 border-r border-binance-border bg-binance-surface flex flex-col h-screen fixed left-0 top-0 z-30">
             <div className="p-6">
                 <div className="flex items-center gap-3 px-2">
-                    <div className="w-8 h-8 bg-binance-brand rounded-lg flex items-center justify-center shadow-lg shadow-binance-brand/20">
-                        <span className="text-black font-black text-xl italic">LB</span>
-                    </div>
+                    <img src="/laughingbuddha.png" alt="Logo" className="w-8 h-8 rounded-lg shadow-lg shadow-black/20" />
                     <div>
                         <h1 className="text-sm font-black tracking-tighter text-binance-text uppercase italic">Laughing Buddha</h1>
                         <p className="text-[10px] text-binance-brand font-bold tracking-widest uppercase">PRO TERMINAL</p>
