@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ChevronLeft, User, Mail, Globe, MessageSquare, Clock, Check, AlertCircle } from 'lucide-react';
+import { ChevronLeft, User, Mail, Globe, MessageSquare, Clock, Check, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface UserProfile {
   id: string;
@@ -207,6 +207,30 @@ export default function ProfilePage() {
             </div>
             
             <div className="space-y-4">
+              {/* Connected State - Show when Telegram is linked */}
+              {profile?.telegramChatId ? (
+                <div className="rounded-lg border border-binance-up/30 bg-binance-up/10 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle className="w-5 h-5 text-binance-up" />
+                    <p className="text-sm font-medium text-binance-up">Telegram Connected</p>
+                  </div>
+                  <p className="text-xs text-binance-secondary mb-3">
+                    Chat ID: {profile.telegramChatId}
+                  </p>
+                  <p className="text-xs text-binance-secondary">
+                    You will receive alerts in this chat.
+                  </p>
+                  <Button
+                    type="button"
+                    onClick={handleGenerateTelegramLink}
+                    disabled={generatingTelegramLink}
+                    className="mt-3 text-xs bg-transparent border border-binance-border text-binance-secondary hover:text-binance-text hover:border-binance-text font-medium"
+                  >
+                    {generatingTelegramLink ? 'Generating...' : 'Re-link to different account'}
+                  </Button>
+                </div>
+              ) : (
+              /* Not Connected State */
               <div className="rounded-lg border border-binance-brand/30 bg-binance-brand/10 p-3">
                 <p className="text-xs text-binance-secondary">Recommended</p>
                 <Button
@@ -223,6 +247,7 @@ export default function ProfilePage() {
                   </p>
                 )}
               </div>
+              )}
 
               <div>
                 <label className="block text-xs font-medium text-binance-secondary uppercase tracking-wider mb-2">Telegram Chat ID (Optional Manual)</label>
