@@ -1,11 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { SignedIn, SignedOut } from '@clerk/nextjs';
+import { useAuth } from "@clerk/nextjs";
 
 export function MobileNav() {
     const [open, setOpen] = useState(false);
+    const { isSignedIn, isLoaded } = useAuth();
+
+    // Fallback: show both buttons while auth is loading
+    const showBothButtons = !isLoaded;
 
     return (
         <>
@@ -35,19 +39,22 @@ export function MobileNav() {
                 <Link href="#pricing"      onClick={() => setOpen(false)}>Pricing</Link>
 
                 <div className="mobile-menu-cta">
-                    <SignedIn>
+                    {!isLoaded || isSignedIn ? (
                         <Link href="/dashboard" className="btn-primary" onClick={() => setOpen(false)}>
                             Go to Dashboard →
                         </Link>
-                    </SignedIn>
-                    <SignedOut>
-                        <Link href="/sign-in" className="btn-ghost" onClick={() => setOpen(false)}>
-                            Sign In
-                        </Link>
-                        <Link href="/sign-up" className="btn-primary" onClick={() => setOpen(false)}>
-                            Start Free →
-                        </Link>
-                    </SignedOut>
+                    ) : null}
+                    
+                    {!isLoaded || !isSignedIn ? (
+                        <>
+                            <Link href="/sign-in" className="btn-ghost" onClick={() => setOpen(false)}>
+                                Sign In
+                            </Link>
+                            <Link href="/sign-up" className="btn-primary" onClick={() => setOpen(false)}>
+                                Start Free →
+                            </Link>
+                        </>
+                    ) : null}
                 </div>
             </div>
         </>

@@ -35,6 +35,9 @@ export default function ProfilePage() {
   const [whatsappPhone, setWhatsappPhone] = useState('');
   const [timezone, setTimezone] = useState('Asia/Kolkata');
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [telegramLinkUrl, setTelegramLinkUrl] = useState('');
+  const [generatingTelegramLink, setGeneratingTelegramLink] = useState(false);
 
   useEffect(() => {
     if (isLoaded && user) {
@@ -51,9 +54,16 @@ export default function ProfilePage() {
         setTelegramId(data.telegramChatId || '');
         setWhatsappPhone(data.whatsappPhone || '');
         setTimezone(data.timezone || 'Asia/Kolkata');
+      } else {
+        const errorData = await res.json();
+        console.error('Error fetching profile:', errorData);
+        setErrorMessage(errorData.error || 'Failed to load profile');
+        setStatus('error');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching profile:', error);
+      setErrorMessage(error.message || 'Failed to load profile');
+      setStatus('error');
     } finally {
       setLoading(false);
     }
@@ -88,6 +98,28 @@ export default function ProfilePage() {
       setStatus('error');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleGenerateTelegramLink = async () => {
+    setGeneratingTelegramLink(true);
+    setErrorMessage('');
+
+    try {
+      const res = await fetch('/api/telegram/link', { method: 'POST' });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to generate Telegram link');
+      }
+
+      setTelegramLinkUrl(data.link);
+      window.open(data.link, '_blank', 'noopener,noreferrer');
+    } catch (error: any) {
+      setStatus('error');
+      setErrorMessage(error.message || 'Failed to generate Telegram link');
+    } finally {
+      setGeneratingTelegramLink(false);
     }
   };
 
@@ -148,7 +180,11 @@ export default function ProfilePage() {
             <h3 className="text-xs font-bold text-binance-secondary uppercase tracking-widest mb-4">Your Plan</h3>
             <div className="flex items-center justify-between">
               <span className="font-bold text-binance-brand text-lg">{profile?.tier || 'FREE'}</span>
-              <span className="text-xs text-binance-secondary">Unlimited alerts</span>
+              <Link href="/dashboard/plans">
+                <Button variant="outline" size="sm" className="text-xs">
+                  {profile?.tier === 'FREE' ? 'Upgrade' : 'Change Plan'}
+                </Button>
+              </Link>
             </div>
             <div className="w-full bg-binance-bg h-1.5 rounded-full overflow-hidden mt-3">
               <div className="bg-binance-brand h-full w-full" />
@@ -171,8 +207,25 @@ export default function ProfilePage() {
             </div>
             
             <div className="space-y-4">
+              <div className="rounded-lg border border-binance-brand/30 bg-binance-brand/10 p-3">
+                <p className="text-xs text-binance-secondary">Recommended</p>
+                <Button
+                  type="button"
+                  onClick={handleGenerateTelegramLink}
+                  disabled={generatingTelegramLink}
+                  className="mt-2 bg-binance-brand text-black hover:bg-binance-brand/90 font-bold"
+                >
+                  {generatingTelegramLink ? 'Generating link...' : 'Connect Telegram'}
+                </Button>
+                {telegramLinkUrl && (
+                  <p className="text-xs text-binance-secondary mt-2 break-all">
+                    If Telegram did not open, use this link: <a href={telegramLinkUrl} target="_blank" rel="noreferrer" className="text-binance-brand underline">{telegramLinkUrl}</a>
+                  </p>
+                )}
+              </div>
+
               <div>
-                <label className="block text-xs font-medium text-binance-secondary uppercase tracking-wider mb-2">Telegram Chat ID</label>
+                <label className="block text-xs font-medium text-binance-secondary uppercase tracking-wider mb-2">Telegram Chat ID (Optional Manual)</label>
                 <input
                   type="text"
                   value={telegramId}
@@ -181,7 +234,7 @@ export default function ProfilePage() {
                   className="w-full h-10 rounded-lg border border-binance-border bg-binance-bg px-3 py-2 text-sm text-binance-text placeholder:text-binance-secondary focus:outline-none focus:ring-2 focus:ring-binance-brand focus:border-transparent"
                 />
                 <p className="text-xs text-binance-secondary mt-2">
-                  Start our bot and send /start to get your Chat ID
+                  Manual mode is still supported, but Connect Telegram is faster and safer.
                 </p>
               </div>
             </div>
@@ -256,7 +309,7 @@ export default function ProfilePage() {
             {status === 'error' && (
               <span className="flex items-center gap-2 text-sm text-binance-down">
                 <AlertCircle className="w-4 h-4" />
-                Failed to update profile
+                {errorMessage || 'Failed to update profile'}
               </span>
             )}
           </div>

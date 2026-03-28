@@ -23,7 +23,7 @@ export function PortfolioTable({ userId }: PortfolioTableProps) {
     const { data: assets, isLoading } = useQuery({
         queryKey: ['portfolio', userId],
         queryFn: async () => {
-            const resp = await fetch(`/api/python/portfolio/${userId}`);
+            const resp = await fetch(`/api/portfolio/${userId}`);
             const data = await resp.json();
             return Array.isArray(data) ? data : (data.assets || []);
         },
@@ -32,7 +32,7 @@ export function PortfolioTable({ userId }: PortfolioTableProps) {
 
     const deleteMutation = useMutation({
         mutationFn: async (assetId: string) => {
-            const response = await fetch(`/api/python/portfolio/${assetId}`, {
+            const response = await fetch(`/api/portfolio/${assetId}`, {
                 method: 'DELETE',
             });
             if (!response.ok) throw new Error('Failed to delete asset');

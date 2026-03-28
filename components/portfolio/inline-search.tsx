@@ -29,7 +29,7 @@ export function InlineSearch({
         queryKey: ['inline-search', query],
         queryFn: async () => {
             if (!query || query.length < 2) return [];
-            const resp = await fetch(`/api/python/search?q=${encodeURIComponent(query)}`);
+            const resp = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
             if (!resp.ok) return [];
             const data = await resp.json();
             return Array.isArray(data) ? data : [];
@@ -42,7 +42,7 @@ export function InlineSearch({
             // Normalize asset_type to assetType (camelCase) and map INDEX to STOCK
             const normalizedType = asset.type === 'INDEX' ? 'STOCK' : asset.type;
             
-            const resp = await fetch('/api/python/portfolio/add', {
+            const resp = await fetch('/api/portfolio/add', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

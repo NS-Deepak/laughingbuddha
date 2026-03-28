@@ -10,6 +10,7 @@ datasource db {
 enum Tier {
   FREE
   PRO
+  MAX
 }
 
 enum AssetType {
@@ -31,14 +32,36 @@ model User {
   whatsappPhone   String?  @map("whatsapp_phone")
   timezone        String   @default("Asia/Kolkata") @map("timezone") // IANA timezone
   tier            Tier     @default(FREE)
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  // Dodo Payments subscription fields
+  dodoCustomerId    String?   @map("dodo_customer_id")
+  subscriptionId   String?   @map("subscription_id")
+  subscriptionStatus String? @map("subscription_status") // active, canceled, past_due
+  planExpiresAt    DateTime? @map("plan_expires_at")
+  
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
   
   alerts          Alert[]
   assets          Asset[]
   schedules       Schedule[] // NEW: For scheduled digest alerts
+  ratings         Rating[] // NEW: For asset ratings
+  telegramLinkTokens TelegramLinkToken[]
 
   @@map("users")
+}
+
+model TelegramLinkToken {
+  token     String   @id
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("telegram_link_tokens")
 }
 
 model Alert {
@@ -71,6 +94,7 @@ model Asset {
 
   user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   schedules       ScheduleAsset[] // NEW: Link to schedules
+  ratings         Rating[] // NEW: Asset ratings
 
   @@index([userId])
   @@unique([userId, symbol])
@@ -117,4 +141,23 @@ model ScheduleAsset {
   @@index([scheduleId])
   @@index([assetId])
   @@map("schedule_assets")
+}
+
+// NEW MODEL: Rating - Asset ratings and reviews
+model Rating {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  assetId   String   @map("asset_id")
+  stars     Int      // 1-5 rating
+  comment   String?  @db.Text // Optional review/comment
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset     Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, assetId]) // One rating per user per asset
+  @@index([assetId])
+  @@index([userId])
+  @@map("ratings")
 }

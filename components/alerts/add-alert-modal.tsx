@@ -19,7 +19,7 @@ export function AddAlertModal({
 
     const addMutation = useMutation({
         mutationFn: async () => {
-            const resp = await fetch('/api/python/alerts', {
+            const resp = await fetch('/api/alerts', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

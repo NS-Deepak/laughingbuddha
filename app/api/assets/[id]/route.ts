@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId } = await auth();
 
@@ -13,9 +13,10 @@ export async function DELETE(
   }
 
   try {
+    const { id: assetId } = await params;
     await prisma.asset.delete({
       where: {
-        id: params.id,
+        id: assetId,
         userId
       }
     });

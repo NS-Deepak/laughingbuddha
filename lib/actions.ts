@@ -29,7 +29,7 @@ export async function syncUser() {
 }
 
 export async function linkTelegram(telegramId: string) {
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
     try {

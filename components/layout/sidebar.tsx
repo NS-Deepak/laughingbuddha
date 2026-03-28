@@ -2,28 +2,28 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useClerk } from '@clerk/nextjs';
 import {
     Bell,
     LayoutDashboard,
-    Zap,
     User,
-    LogOut,
     ChevronLeft,
     ChevronRight,
+    Crown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { SignOutButton } from "@clerk/nextjs";
 import { useSidebar } from './sidebar-context';
 
 export function Sidebar() {
     const pathname = usePathname();
     const { collapsed, toggle } = useSidebar();
+    const { signOut } = useClerk();
 
     const navItems = [
         { name: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-        { name: 'Terminal',  icon: Zap,             href: '/terminal/BTC-USD' },
         { name: 'Alerts',    icon: Bell,            href: '/dashboard/notifications' },
         { name: 'Account',   icon: User,            href: '/dashboard/profile' },
+        { name: 'Plans',    icon: Crown,           href: '/dashboard/plans' },
     ];
 
     return (
@@ -54,7 +54,7 @@ export function Sidebar() {
                                     Laughing Buddha
                                 </p>
                                 <p className="text-[9px] text-binance-brand font-bold tracking-widest uppercase">
-                                    PRO TERMINAL
+                                    MARKET ALERTS
                                 </p>
                             </div>
                         </div>
@@ -115,16 +115,18 @@ export function Sidebar() {
                 <div className={cn(
                     'p-2 border-t border-binance-border shrink-0',
                 )}>
-                    <div
+                    <button
+                        onClick={() => signOut({ redirectUrl: '/' })}
                         className={cn(
-                            'flex items-center rounded-lg text-sm font-medium text-binance-secondary hover:text-binance-down transition-colors cursor-pointer',
-                            collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2'
+                            'flex items-center rounded-lg text-sm font-medium transition-all group w-full',
+                            collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5',
+                            'text-binance-secondary hover:text-red-500 hover:bg-red-500/10'
                         )}
                         title={collapsed ? 'Sign out' : undefined}
                     >
-                        <LogOut className={cn('shrink-0', collapsed ? 'w-5 h-5' : 'w-4 h-4')} />
-                        {!collapsed && <SignOutButton />}
-                    </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={cn('shrink-0', collapsed ? 'w-5 h-5' : 'w-4 h-4')}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" x2="9" y1="12" y2="12"></line></svg>
+                        {!collapsed && <span>Sign out</span>}
+                    </button>
                 </div>
             </aside>
 

@@ -75,65 +75,8 @@
 .marketing-page a {
     text-decoration: none;
 }
+.marketing-page svg { stroke-width: 2; }
 
-/* ═══════════════════════════════════════════
-   TICKER TAPE
-═══════════════════════════════════════════ */
-.ticker-wrap {
-  background: var(--bg-depth);
-  border-bottom: 1px solid var(--border-lo);
-  height: 34px;
-  overflow: hidden;
-  position: relative;
-}
-.ticker-wrap::before,
-.ticker-wrap::after {
-  content: '';
-  position: absolute;
-  top: 0; bottom: 0; width: 80px; z-index: 2; pointer-events: none;
-}
-.ticker-wrap::before { left:  0; background: linear-gradient(to right, var(--bg-depth), transparent); }
-.ticker-wrap::after  { right: 0; background: linear-gradient(to left,  var(--bg-depth), transparent); }
-
-.ticker-track {
-  display: flex;
-  align-items: center;
-  height: 34px;
-  width: max-content;
-  animation: ticker-run 44s linear infinite;
-}
-.ticker-track:hover { animation-play-state: paused; }
-@keyframes ticker-run {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
-.ticker-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 0 24px;
-  white-space: nowrap;
-  font-size: 12px;
-  font-weight: 500;
-  border-right: 1px solid var(--border-lo);
-  height: 100%;
-}
-.t-sym { color: var(--tx-hi); font-weight: 700; letter-spacing: var(--ls-wide); }
-.t-val { color: var(--tx-md); font-variant-numeric: tabular-nums; }
-.t-up  { color: var(--up);   font-weight: 600; font-variant-numeric: tabular-nums; }
-.t-dn  { color: var(--dn);   font-weight: 600; font-variant-numeric: tabular-nums; }
-
-.ticker-label {
-  position: absolute;
-  right: 8px; top: 50%;
-  transform: translateY(-50%);
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--tx-lo);
-  letter-spacing: var(--ls-wide);
-  text-transform: uppercase;
-  z-index: 4;
-}
 
 /* ═══════════════════════════════════════════
    NAV
@@ -182,7 +125,7 @@
 
 .nav-right { display: flex; align-items: center; gap: 8px; }
 .btn-ghost {
-  font-size: 13px; font-weight: 500;
+  font-size: 14px; font-weight: 500;
   color: var(--tx-md); background: transparent; border: none;
   padding: 7px 15px; border-radius: var(--r-md);
   cursor: pointer;
@@ -191,7 +134,7 @@
 .btn-ghost:hover { color: var(--tx-hi); background: var(--bg-surface); }
 
 .btn-primary {
-  font-size: 13px; font-weight: 600;
+  font-size: 14px; font-weight: 600;
   color: #0A0C0F; background: var(--brand); border: none;
   padding: 7px 18px; border-radius: var(--r-md);
   cursor: pointer; letter-spacing: var(--ls-base);
@@ -478,7 +421,7 @@
   width: 1px; background: var(--border-lo);
 }
 .metric-num {
-  font-size: 34px; font-weight: 800;
+  font-size: 36px; font-weight: 800;
   color: var(--tx-hi);
   letter-spacing: var(--ls-tight);
   line-height: 1; margin-bottom: 10px;
@@ -486,6 +429,8 @@
 }
 .mn-brand { color: var(--brand); }
 .mn-sec   { font-size: 18px; color: var(--tx-md); font-weight: 600; letter-spacing: var(--ls-tight); }
+/* Third metric is smaller than the other two — keeps visual balance with mixed content */
+.metric-num-nse { font-size: 26px; letter-spacing: var(--ls-tight); }
 .metric-label {
   font-size: 10px; font-weight: 700;
   color: var(--tx-lo);
@@ -653,10 +598,10 @@
   box-shadow: var(--shadow-ring), var(--shadow-lg);
 }
 .tg-bar {
-  background: var(--tg-surface);
-  padding: 13px 16px;
+  background: var(--bg-depth);
+  padding: 10px 16px;
   display: flex; align-items: center; gap: 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
+  border-bottom: 1px solid var(--border-lo);
 }
 .tg-avatar {
   width: 36px; height: 36px;
@@ -786,7 +731,7 @@
 .btn-plan {
   width: 100%; padding: 10px;
   border-radius: var(--r-md);
-  font-size: 13px; font-weight: 600;
+  font-size: 14px; font-weight: 600;
   cursor: pointer;
   letter-spacing: var(--ls-base);
   transition: all 0.15s var(--ease-ui);
@@ -873,6 +818,8 @@
   border-radius: var(--r-md);
   transition: background 0.15s var(--ease-ui);
 }
+.mobile-only { display: none !important; }
+.desktop-only { display: flex !important; }
 .nav-hamburger:hover { background: var(--bg-surface); }
 .nav-hamburger span {
   display: block;
@@ -890,7 +837,7 @@
   inset: 0;
   z-index: 300;
   background: var(--bg-depth);
-  padding: 80px 24px 40px;
+  padding: 80px 20px 40px;
   flex-direction: column;
   gap: 6px;
 }
@@ -932,58 +879,94 @@
    RESPONSIVE
 ═══════════════════════════════════════════ */
 @media (max-width: 1024px) {
+  /* Nav */
+  .desktop-only { display: none !important; }
+  .mobile-only  { display: flex !important; }
+  .nav-hamburger { display: flex !important; }
+
+  /* Hero */
   .hero-inner       { grid-template-columns: 1fr; padding: 72px 24px 56px; gap: 48px; }
+
+  /* Steps — BUG 11 FIX: enforce min-height so 2×2 rows stay visually even */
   .steps-grid       { grid-template-columns: repeat(2,1fr); }
+  .step             { min-height: 220px; }
+
+  /* Features */
   .features-grid    { grid-template-columns: 1fr; }
+
+  /* Alert Preview */
   .preview-grid     { grid-template-columns: 1fr; gap: 48px; }
-  .pricing-grid     { grid-template-columns: 1fr; max-width: 480px; }
+
+  /* Pricing — BUG 7 FIX: add centering */
+  .pricing-grid     { grid-template-columns: 1fr; max-width: 480px; margin: 48px auto 0; }
+
+  /* Metrics — BUG 5 FIX: constrain separator so it doesn't clip into large metric numbers */
   .metrics-inner    { grid-template-columns: 1fr 1fr 1fr; }
-  .footer-top       { grid-template-columns: 1fr 1fr; gap: 28px; }
-  .nav-links        { display: none; }
-  .nav-hamburger    { display: flex; }
+  .metric + .metric::before { top: 18%; bottom: 18%; }
+
+  /* Footer — BUG 9 FIX: brand row spans full width, link columns below */
+  .footer-top {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 28px;
+  }
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 640px) {
   /* Nav */
   .marketing-nav    { padding: 0 20px; }
+  /* Nav Clarity Restoration: The mobile header is ONLY Logo + Hamburger */
+  .desktop-only { display: none !important; }
 
   /* Hero */
-  .hero-inner       { padding: 52px 20px 44px; gap: 40px; }
+  /* BUG 3 FIX: terminal is hidden; collapse bottom padding from 44px → 28px */
+  .hero-inner       { padding: 52px 20px 28px; gap: 40px; }
   .hero-h1          { font-size: 34px; }
   .hero-p           { font-size: 15px; }
+  /* BUG 2 FIX: set display:flex so SVG + text centering works correctly */
   .hero-actions     { flex-direction: column; align-items: stretch; gap: 10px; }
-  .btn-hero-p,
-  .btn-hero-s       { text-align: center; justify-content: center; width: 100%; }
-  .hero-trust       { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .btn-hero-p       { display: flex; text-align: center; justify-content: center; width: 100%; padding: 12px 16px; }
+  .btn-hero-s       { display: flex; text-align: center; justify-content: center; width: 100%; padding: 12px 16px; }
+  /* BUG 4 FIX: reduce hero-trust top padding so trust signals aren't pushed off short screens */
+  /* Restoration: Reduced further to 12px to eliminate the mobile dead zone */
+  .hero-trust       { flex-direction: column; align-items: flex-start; gap: 12px; padding-top: 12px; }
+  .trust-text       { font-size: 12px; }
 
-  /* Terminal card: hide on very small so hero layout doesn't crush */
+  /* Terminal — hidden at small mobile */
   .terminal         { display: none; }
 
-  /* Sections */
-  .section          { padding: 56px 20px; }
+  /* Sections — BUG 8 FIX: reduce section-head margin-bottom */
+  .section          { padding: 80px 20px; }
+  .section-head     { margin-bottom: 32px; }
 
   /* Steps */
   .steps-grid       { grid-template-columns: 1fr; }
+  .step             { min-height: unset; }
 
   /* Metrics */
   .metrics-inner    { grid-template-columns: 1fr; padding: 0 20px; }
   .metric + .metric::before { display: none; }
   .metric           { padding: 24px 0; border-top: 1px solid var(--border-lo); }
   .metric:first-child { border-top: none; }
+  /* BUG 5 FIX: third metric inline style override */
+  .metric-num-nse   { font-size: 26px !important; letter-spacing: var(--ls-tight); }
 
-  /* Pricing: single column, full width */
-  .pricing-grid     { max-width: 100%; }
+  /* Pricing — BUG 7 FIX: full width on mobile, centered */
+  .pricing-grid     { max-width: 100%; margin: 32px auto 0; }
 
-  /* Footer */
-  .marketing-footer { padding: 40px 20px 24px; }
+  /* Footer — BUG 9 + 12 FIX: match section rhythm, single column */
+  .marketing-footer { padding: 56px 20px 24px; }
   .footer-top       { grid-template-columns: 1fr; gap: 28px; }
+  .footer-brand     { grid-column: 1; }
   .footer-bottom    { flex-direction: column; gap: 12px; text-align: center; }
   .footer-legal     { justify-content: center; }
 
-  /* CTA */
+  /* CTA — BUG 10 FIX: tighter horizontal padding on small screens */
   .cta-inner        { padding: 72px 20px; }
   .cta-row          { flex-direction: column; align-items: stretch; }
   .cta-row .btn-hero-p,
-  .cta-row .btn-hero-s { width: 100%; justify-content: center; }
+  .cta-row .btn-hero-s { width: 100%; justify-content: center; display: flex; padding: 12px 16px; }
 }
 

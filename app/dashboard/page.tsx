@@ -1,13 +1,18 @@
 import { currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { PortfolioTable } from "../../components/portfolio/portfolio-table";
 import { DashboardSummary } from "../../components/dashboard/dashboard-summary";
-import { MarketTicker } from "../../components/dashboard/market-ticker";
 import { QuickAdd } from "../../components/dashboard/quick-add";
 import { InlineSearch } from "../../components/portfolio/inline-search";
 
 export default async function DashboardPage() {
     const user = await currentUser();
-    const userId = user?.id || "demo_user";
+    
+    if (!user) {
+        redirect("/sign-in");
+    }
+    
+    const userId = user.id;
 
     return (
         <div className="flex flex-col gap-6 p-6 min-h-screen bg-binance-bg text-binance-text pb-20">
@@ -33,9 +38,6 @@ export default async function DashboardPage() {
                 </div>
                 <PortfolioTable userId={userId} />
             </div>
-
-            {/* Real-time Market Ticker */}
-            <MarketTicker />
 
         </div>
     );

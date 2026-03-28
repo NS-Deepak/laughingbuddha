@@ -9,7 +9,7 @@ export function AlertList({ userId }: { userId: string }) {
     const { data: response, isLoading } = useQuery({
         queryKey: ['alerts', userId],
         queryFn: async () => {
-            const resp = await fetch(`/api/python/alerts?user_id=${userId}`);
+            const resp = await fetch(`/api/alerts?user_id=${userId}`);
             const data = await resp.json();
             // Backend might return { alerts: [...] } or direct array
             return Array.isArray(data) ? data : (data.alerts || []);
@@ -20,7 +20,7 @@ export function AlertList({ userId }: { userId: string }) {
 
     const deleteMutation = useMutation({
         mutationFn: async (id: string) => {
-            await fetch(`/api/python/alerts/${id}`, { method: 'DELETE' });
+            await fetch(`/api/alerts/${id}`, { method: 'DELETE' });
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['alerts'] });

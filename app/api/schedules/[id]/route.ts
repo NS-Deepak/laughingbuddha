@@ -7,7 +7,7 @@ import { convertLocalTimeToUtc } from '@/lib/timezone';
 // PATCH: Update schedule
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // P0 FIX: auth() is async
   const { userId } = await auth();
@@ -17,6 +17,7 @@ export async function PATCH(
   }
   
   try {
+    const { id: scheduleId } = await params;
     const body = await request.json();
     
     // P1 FIX: Zod validation
@@ -42,14 +43,14 @@ export async function PATCH(
       // If updating assets, delete existing links first
       if (assetIds !== undefined) {
         await tx.scheduleAsset.deleteMany({
-          where: { scheduleId: params.id }
+          where: { scheduleId }
         });
       }
       
       // P0 FIX: Ownership check IN the update query - one atomic operation
       const updated = await tx.schedule.update({
         where: { 
-          id: params.id,
+          id: scheduleId,
           userId // Combined ownership check
         },
         data: {
@@ -76,7 +77,7 @@ export async function PATCH(
       if (targetTime !== undefined) {
         const targetTimeUtc = convertLocalTimeToUtc(targetTime, timezone);
         try {
-          await tx.$executeRaw`UPDATE schedules SET target_time_utc = ${targetTimeUtc} WHERE id = ${params.id}`;
+          await tx.$executeRaw`UPDATE schedules SET target_time_utc = ${targetTimeUtc} WHERE id = ${scheduleId}`;
         } catch (error) {
           // Migration may not be applied yet; don't fail schedule update.
           console.warn('Could not persist target_time_utc for schedule update:', error);
@@ -108,7 +109,7 @@ export async function PATCH(
 // DELETE: Delete schedule
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // P0 FIX: auth() is async
   const { userId } = await auth();
@@ -118,10 +119,11 @@ export async function DELETE(
   }
   
   try {
+    const { id: scheduleId } = await params;
     // P0 FIX: Single delete with ownership check in WHERE
     await prisma.schedule.delete({
       where: { 
-        id: params.id,
+        id: scheduleId,
         userId // Ownership enforced in query
       }
     });

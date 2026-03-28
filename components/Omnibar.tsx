@@ -32,7 +32,7 @@ export function Omnibar({ onSelect }: { onSelect?: (asset: SearchResult) => void
         const fetchResults = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`/api/python/search?q=${encodeURIComponent(debouncedQuery)}`);
+                const res = await fetch(`/api/search?q=${encodeURIComponent(debouncedQuery)}`);
                 if (!res.ok) {
                     console.error("Search API error:", res.status);
                     setResults([]);

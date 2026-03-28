@@ -11,7 +11,7 @@ export async function createAlert(data: {
     triggerType: "SCHEDULED" | "PRICE_LIMIT";
     triggerValue: string;
 }) {
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
     try {
@@ -32,7 +32,7 @@ export async function createAlert(data: {
 }
 
 export async function getAlerts() {
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) return [];
 
     try {
@@ -46,7 +46,7 @@ export async function getAlerts() {
 }
 
 export async function deleteAlert(id: string) {
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
 
     await prisma.alert.delete({

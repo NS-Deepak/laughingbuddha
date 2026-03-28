@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
-import { Zap, Bell, TrendingUp, TrendingDown } from 'lucide-react';
+import { Bell, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface DashboardSummaryProps {
     userId: string;
@@ -31,7 +31,7 @@ export function DashboardSummary({ userId }: DashboardSummaryProps) {
     const { data: portfolio } = useQuery({
         queryKey: ['portfolio', userId],
         queryFn: async () => {
-            const resp = await fetch(`/api/python/portfolio/${userId}`);
+            const resp = await fetch(`/api/portfolio/${userId}`);
             return resp.json();
         },
         refetchInterval: 10000,
@@ -41,7 +41,7 @@ export function DashboardSummary({ userId }: DashboardSummaryProps) {
     const { data: alertsResponse } = useQuery({
         queryKey: ['alerts', userId],
         queryFn: async () => {
-            const resp = await fetch(`/api/python/alerts?user_id=${userId}`);
+            const resp = await fetch(`/api/alerts?user_id=${userId}`);
             const data = await resp.json();
             return Array.isArray(data) ? data : (data.alerts || []);
         },
@@ -103,10 +103,9 @@ export function DashboardSummary({ userId }: DashboardSummaryProps) {
             </div>
 
             {/* Today's P&L */}
-            <Link href="/terminal/BTC-USD" className="bg-binance-surface p-5 rounded-xl border border-binance-border hover:border-binance-brand/30 transition-all group">
-                <p className="text-xs text-binance-secondary font-medium mb-1 flex justify-between">
+            <div className="bg-binance-surface p-5 rounded-xl border border-binance-border">
+                <p className="text-xs text-binance-secondary font-medium mb-1">
                     Today's P&L
-                    <Zap className="w-3 h-3 text-binance-brand opacity-0 group-hover:opacity-100 transition-all" />
                 </p>
                 <div className="flex items-baseline gap-2">
                     <h2 className={`text-3xl font-mono font-bold ${totalPnL >= 0 ? 'text-binance-up' : 'text-binance-down'}`}>
@@ -116,7 +115,7 @@ export function DashboardSummary({ userId }: DashboardSummaryProps) {
                         {totalPnL >= 0 ? <TrendingUp className="w-3 h-3 text-binance-up" /> : <TrendingDown className="w-3 h-3 text-binance-down" />}
                     </span>
                 </div>
-            </Link>
+            </div>
 
             {/* Active Alerts */}
             <Link href="/dashboard/alerts" className="bg-binance-surface p-5 rounded-xl border border-binance-border hover:border-binance-brand/30 transition-all group">

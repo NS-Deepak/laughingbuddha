@@ -1,7 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // All API routes are now in Next.js - no proxy needed
-    // The Python backend is only for local development reference
-}
+  // Allow LAN access from other devices during development
+  allowedDevOrigins: ['192.168.0.60'],
+
+  // NOTE: The Python backend proxy (/pyapi/*) has been removed.
+  // The TypeScript API routes in app/api/python/* have replaced it.
+  // No rewrites needed anymore.
+
+  turbopack: {
+    root: './',
+  },
+};
 
 export default nextConfig

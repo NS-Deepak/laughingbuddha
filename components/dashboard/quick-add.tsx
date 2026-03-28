@@ -13,15 +13,12 @@ interface QuickAsset {
 }
 
 const QUICK_ASSETS: QuickAsset[] = [
-    // Stocks
     { symbol: "SWIGGY.NS", name: "SWIGGY", type: "STOCK", exchange: "NSE" },
     { symbol: "TCS.NS", name: "TCS", type: "STOCK", exchange: "NSE" },
     { symbol: "INFY.NS", name: "Infosys", type: "STOCK", exchange: "NSE" },
-    // Crypto
     { symbol: "BTC-USD", name: "Bitcoin", type: "CRYPTO", exchange: "CCC" },
     { symbol: "ETH-USD", name: "Ethereum", type: "CRYPTO", exchange: "CCC" },
     { symbol: "SOL-USD", name: "Solana", type: "CRYPTO", exchange: "CCC" },
-    // Commodities
     { symbol: "GC=F", name: "Gold", type: "COMMODITY", exchange: "COMEX" },
     { symbol: "SI=F", name: "Silver", type: "COMMODITY", exchange: "COMEX" },
 ];
@@ -29,44 +26,47 @@ const QUICK_ASSETS: QuickAsset[] = [
 export function QuickAdd({ userId }: { userId: string }) {
     const queryClient = useQueryClient();
     const [addedSymbols, setAddedSymbols] = useState<Set<string>>(new Set());
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const mutation = useMutation({
         mutationFn: async (asset: QuickAsset) => {
-            console.log('🚀 Quick Add: Attempting to add', asset.symbol);
-            const response = await fetch("/api/python/portfolio/add", {
+            setErrorMessage(null);
+            const response = await fetch("/api/portfolio/add", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    user_id: userId,
                     symbol: asset.symbol,
                     name: asset.name,
-                    asset_type: asset.type,
+                    assetType: asset.type,
                     exchange: asset.exchange,
                 }),
             });
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                console.error('❌ Quick Add failed:', data);
-                throw new Error(data.detail || "Failed to add asset");
+            let data: any = {};
+            try {
+                data = await response.json();
+            } catch {
+                data = {};
             }
 
-            console.log('✅ Quick Add successful:', data);
+            if (!response.ok) {
+                const validationMessage =
+                    data?.details && typeof data.details === "object"
+                        ? Object.values(data.details).flat().filter(Boolean)[0]
+                        : null;
+                const message = data.error || data.detail || validationMessage || "Failed to add asset";
+                throw new Error(message);
+            }
+
             return { asset, data };
         },
         onMutate: async (newAsset) => {
-            // Cancel outgoing refetches
             await queryClient.cancelQueries({ queryKey: ["portfolio", userId] });
-
-            // Snapshot previous value
             const previousAssets = queryClient.getQueryData(["portfolio", userId]);
 
-            // Optimistically update
             queryClient.setQueryData(["portfolio", userId], (old: any) => {
                 const assets = Array.isArray(old) ? old : (old?.assets || []);
 
-                // Prevent duplicate addition in optimisic state
                 if (assets.some((a: any) => a.symbol === newAsset.symbol)) {
                     return assets;
                 }
@@ -77,21 +77,17 @@ export function QuickAdd({ userId }: { userId: string }) {
                     name: newAsset.name,
                     asset_type: newAsset.type,
                     exchange: newAsset.exchange,
-                    current_price: null, // Loading state
+                    current_price: null,
                     price_change_24h: null,
                     added_at: new Date().toISOString()
                 };
                 return [optimisticAsset, ...assets];
             });
 
-            // Mark as added immediately for UI feedback
             setAddedSymbols(prev => new Set(prev).add(newAsset.symbol));
-
-            // Return context
             return { previousAssets };
         },
         onSuccess: (result) => {
-            // Remove "added" indicator after 2 seconds
             setTimeout(() => {
                 setAddedSymbols(prev => {
                     const next = new Set(prev);
@@ -101,14 +97,13 @@ export function QuickAdd({ userId }: { userId: string }) {
             }, 2000);
         },
         onError: (err, newAsset, context) => {
-            // Rollback
             queryClient.setQueryData(["portfolio", userId], context?.previousAssets);
             setAddedSymbols(prev => {
                 const next = new Set(prev);
                 next.delete(newAsset.symbol);
                 return next;
             });
-            console.error('💥 Quick Add error:', err);
+            setErrorMessage(err instanceof Error ? err.message : "Failed to add asset");
         },
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ["portfolio", userId] });
@@ -117,6 +112,16 @@ export function QuickAdd({ userId }: { userId: string }) {
 
     return (
         <div className="space-y-4">
+            {errorMessage && (
+                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-200 text-sm">
+                    {errorMessage.includes('limit') ? (
+                        <span>
+                            {errorMessage}{' '}
+                            <a href="/dashboard/plans" className="underline hover:text-red-100">Upgrade now</a>
+                        </span>
+                    ) : errorMessage}
+                </div>
+            )}
             <div className="flex items-center gap-2">
                 <Zap className="w-4 h-4 text-binance-brand" />
                 <h3 className="text-sm font-bold text-binance-text uppercase tracking-wider italic">Fast Picks</h3>
@@ -126,7 +131,6 @@ export function QuickAdd({ userId }: { userId: string }) {
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
                 {QUICK_ASSETS.map((asset) => {
                     const isAdded = addedSymbols.has(asset.symbol);
-                    // Only show loading if not added yet (optimistic update handles "added" state)
                     const isLoading = mutation.isPending && mutation.variables?.symbol === asset.symbol && !isAdded;
 
                     return (
@@ -155,7 +159,6 @@ export function QuickAdd({ userId }: { userId: string }) {
                             </span>
                             <span className="text-[9px] text-binance-secondary truncate w-full">{asset.name}</span>
 
-                            {/* Hover Highlight */}
                             <div className="absolute inset-0 bg-binance-brand/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>
                     );
