@@ -34,7 +34,7 @@ export function DashboardSummary({ userId }: DashboardSummaryProps) {
             const resp = await fetch(`/api/portfolio/${userId}`);
             return resp.json();
         },
-        refetchInterval: 10000,
+        refetchInterval: 60000,
     });
 
     // Fetch alerts data

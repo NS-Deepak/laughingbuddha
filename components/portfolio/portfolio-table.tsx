@@ -27,7 +27,7 @@ export function PortfolioTable({ userId }: PortfolioTableProps) {
             const data = await resp.json();
             return Array.isArray(data) ? data : (data.assets || []);
         },
-        refetchInterval: 10000,
+        refetchInterval: 60000,
     });
 
     const deleteMutation = useMutation({

@@ -34,3 +34,13 @@ ts-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDE
+.kilocode/
+.vscode/
+
+# logs
+*.log
+
+# OS files
+Thumbs.db

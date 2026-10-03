@@ -61,7 +61,7 @@
 }
 
 .marketing-page {
-  font-family: 'Inter', -apple-system, sans-serif;
+  font-family: var(--font-marketing-body), "Inter", -apple-system, sans-serif;
   background: var(--bg-root);
   color: var(--tx-hi);
   -webkit-font-smoothing: antialiased;
@@ -184,20 +184,22 @@
 }
 
 .hero-h1 {
+  font-family: var(--font-marketing-display), var(--font-marketing-body), "Inter", sans-serif;
   font-size: clamp(38px, 4.5vw, 56px);
   font-weight: 800;
-  line-height: 1.08;
-  letter-spacing: var(--ls-tight);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
   color: var(--tx-hi);
   margin-bottom: 20px;
 }
 .h1-accent { color: var(--brand); display: block; }
 
 .hero-p {
+  font-family: var(--font-marketing-body), "Inter", sans-serif;
   font-size: 16px;
-  font-weight: 400;
+  font-weight: 500;
   color: var(--tx-md);
-  line-height: 1.78;
+  line-height: 1.72;
   max-width: 460px;
   margin-bottom: 36px;
   letter-spacing: var(--ls-base);
@@ -969,4 +971,3 @@
   .cta-row .btn-hero-p,
   .cta-row .btn-hero-s { width: 100%; justify-content: center; display: flex; padding: 12px 16px; }
 }
-

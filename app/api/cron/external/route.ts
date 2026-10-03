@@ -43,6 +43,22 @@ export async function GET() {
   });
 }
 
+const SCHEDULE_WINDOW_MINUTES = Math.max(
+  1,
+  Number(process.env.SCHEDULER_WINDOW_MINUTES ?? '15')
+);
+
+function timeToMinutes(value: string): number | null {
+  const match = /^(\d{1,2}):(\d{2})$/.exec(value.trim());
+  if (!match) return null;
+
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
+
+  return hours * 60 + minutes;
+}
+
 function getLocalScheduleContext(date: Date, timezone: string) {
   const formatter = new Intl.DateTimeFormat('en-CA', {
     timeZone: timezone,
@@ -68,10 +84,14 @@ function getLocalScheduleContext(date: Date, timezone: string) {
     Sun: 7,
   };
 
+  const localHour = Number(getPart('hour'));
+  const localMinute = Number(getPart('minute'));
+
   return {
     localDate: `${getPart('year')}-${getPart('month')}-${getPart('day')}`,
     localTime: `${getPart('hour')}:${getPart('minute')}`,
     localDay: weekdayMap[getPart('weekday')] ?? 0,
+    localMinutes: localHour * 60 + localMinute,
   };
 }
 
@@ -125,9 +145,36 @@ async function runSchedulerOnce(_includeDebug: boolean) {
     for (const schedule of schedules) {
       const daysArray = schedule.daysOfWeek as number[];
       const timezone = schedule.user?.timezone || 'UTC';
-      const { localDate, localTime, localDay } = getLocalScheduleContext(now, timezone);
+      const { localDate, localTime, localDay, localMinutes } = getLocalScheduleContext(now, timezone);
 
-      if (!daysArray.includes(localDay) || schedule.targetTime !== localTime) {
+      const targetMinutes = timeToMinutes(schedule.targetTime);
+      if (targetMinutes === null) {
+        skipped++;
+        debug.schedules.skippedWrongDayOrTime++;
+        addScheduleSample({
+          id: schedule.id,
+          name: schedule.name,
+          targetTime: schedule.targetTime,
+          localTime,
+          localDay,
+          timezone,
+          reason: 'invalid_target_time',
+        });
+        continue;
+      }
+
+      let minutesSinceTarget = localMinutes - targetMinutes;
+      let effectiveDay = localDay;
+
+      if (minutesSinceTarget < 0) {
+        minutesSinceTarget += 1440;
+        effectiveDay = localDay === 1 ? 7 : localDay - 1;
+      }
+
+      const dayMatches = daysArray.includes(effectiveDay);
+      const withinWindow = minutesSinceTarget <= SCHEDULE_WINDOW_MINUTES;
+
+      if (!dayMatches || !withinWindow) {
         skipped++;
         debug.schedules.skippedWrongDayOrTime++;
         addScheduleSample({
